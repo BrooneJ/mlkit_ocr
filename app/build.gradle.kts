@@ -46,6 +46,13 @@ dependencies {
   implementation(libs.androidx.ui.graphics)
   implementation(libs.androidx.ui.tooling.preview)
   implementation(libs.androidx.material3)
+  implementation(libs.mlkit.text.recognition)
+  implementation(libs.mlkit.text.recognition.japanese)
+  implementation(libs.camera.camera2)
+  implementation(libs.camera.lifecycle)
+  implementation(libs.camera.view)
+  implementation(libs.camera.extensions)
+
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)
   androidTestImplementation(libs.androidx.espresso.core)
