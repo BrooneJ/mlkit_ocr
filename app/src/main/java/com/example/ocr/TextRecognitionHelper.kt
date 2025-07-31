@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 
 object TextRecognitionHelper {
@@ -13,7 +14,7 @@ object TextRecognitionHelper {
     onResult: (String) -> Unit,
   ) {
     val inputImage = InputImage.fromFilePath(context, uri)
-    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    val recognizer = TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build())
     recognizer.process(inputImage)
       .addOnSuccessListener { visionText ->
         // Process the recognized text
