@@ -1,5 +1,8 @@
 package com.example.ocr
 
+import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
 import androidx.camera.core.CameraSelector
@@ -35,7 +38,7 @@ import java.io.File
 import java.util.concurrent.Executors
 
 @Composable
-fun CameraBox(onTextRecognized: (String) -> Unit) {
+fun CameraBox(onTextRecognized: (String) -> Unit, onCaptured: (Uri) -> Unit) {
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
   val previewView = remember {
@@ -98,6 +101,9 @@ fun CameraBox(onTextRecognized: (String) -> Unit) {
           object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
               val savedUri = outputFileResults.savedUri ?: outputFile.toUri()
+              Handler(Looper.getMainLooper()).post {
+                onCaptured(savedUri)
+              }
               TextRecognitionHelper.recognizeTextFromUri(context, savedUri) {
                 onTextRecognized(it)
               }

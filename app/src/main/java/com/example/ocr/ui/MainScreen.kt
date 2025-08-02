@@ -33,6 +33,7 @@ import com.example.ocr.TextRecognitionHelper
 fun MainScreen() {
   var recognizedText by remember { mutableStateOf("Recognized text will appear here.") }
   var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+  var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
   val context = LocalContext.current
   val galleryLauncher = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.GetContent()
@@ -72,9 +73,13 @@ fun MainScreen() {
         .padding(8.dp)
     ) {
       if (cameraPermissionState.value) {
-        CameraBox {
-          recognizedText = it
-        }
+        CameraBox(
+          onTextRecognized = {
+            recognizedText = it
+          },
+          onCaptured = {
+            capturedImageUri = it
+          })
       } else {
         Box(
           modifier = Modifier.fillMaxSize(),
