@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -75,6 +76,12 @@ fun CameraBox(onTextRecognized: (String) -> Unit, onCaptured: (Uri) -> Unit) {
         }
       }, ContextCompat.getMainExecutor(context)
     )
+  }
+
+  DisposableEffect(Unit) {
+    onDispose {
+      cameraExecutor.shutdown()
+    }
   }
 
   Box(
