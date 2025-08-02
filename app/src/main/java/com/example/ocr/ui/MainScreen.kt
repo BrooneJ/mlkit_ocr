@@ -65,10 +65,11 @@ fun MainScreen() {
   }
 
   Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-    Column(modifier = Modifier
-      .fillMaxSize()
-      .padding(innerPadding)
-      .padding(16.dp)
+    Column(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(innerPadding)
+        .padding(16.dp)
     ) {
       if (cameraPermissionState.value) {
         CameraBox {
@@ -84,7 +85,7 @@ fun MainScreen() {
       }
       Spacer(modifier = Modifier.height(16.dp))
       Button(
-        onClick = { galleryLauncher.launch("image/*")},
+        onClick = { galleryLauncher.launch("image/*") },
         modifier = Modifier
           .fillMaxWidth()
           .padding(horizontal = 16.dp)

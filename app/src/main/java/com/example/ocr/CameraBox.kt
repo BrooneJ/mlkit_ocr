@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import java.io.File
@@ -50,22 +51,26 @@ fun CameraBox(onTextRecognized: (String) -> Unit) {
   val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
   // Bind camera
   LaunchedEffect(Unit) {
-    try {
-      val cameraProvider = cameraProviderFuture.get()
-      val preview = Preview.Builder().build().apply {
-        surfaceProvider = previewView.surfaceProvider
-      }
-      val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-      cameraProvider.unbindAll()
-      cameraProvider.bindToLifecycle(
-        lifecycleOwner,
-        cameraSelector,
-        preview,
-        imageCapture
-      )
-    } catch (e: Exception) {
-      Log.e("CameraBox", "Use case binding failed", e)
-    }
+    cameraProviderFuture.addListener(
+      {
+        try {
+          val cameraProvider = cameraProviderFuture.get()
+          val preview = Preview.Builder().build().apply {
+            surfaceProvider = previewView.surfaceProvider
+          }
+          val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+          cameraProvider.unbindAll()
+          cameraProvider.bindToLifecycle(
+            lifecycleOwner,
+            cameraSelector,
+            preview,
+            imageCapture
+          )
+        } catch (e: Exception) {
+          Log.e("CameraBox", "Use case binding failed", e)
+        }
+      }, ContextCompat.getMainExecutor(context)
+    )
   }
 
   Box(
