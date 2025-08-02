@@ -1,8 +1,6 @@
 package com.example.ocr
 
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
 import androidx.camera.core.CameraSelector
@@ -24,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +33,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -41,6 +41,7 @@ import java.util.concurrent.Executors
 fun CameraBox(onTextRecognized: (String) -> Unit, onCaptured: (Uri) -> Unit) {
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
+  val coroutineScope = rememberCoroutineScope()
   val previewView = remember {
     PreviewView(context).apply {
       layoutParams = ViewGroup.LayoutParams(
@@ -101,7 +102,7 @@ fun CameraBox(onTextRecognized: (String) -> Unit, onCaptured: (Uri) -> Unit) {
           object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
               val savedUri = outputFileResults.savedUri ?: outputFile.toUri()
-              Handler(Looper.getMainLooper()).post {
+              coroutineScope.launch {
                 onCaptured(savedUri)
               }
               TextRecognitionHelper.recognizeTextFromUri(context, savedUri) {
