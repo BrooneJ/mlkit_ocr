@@ -69,7 +69,7 @@ fun MainScreen() {
       modifier = Modifier
         .fillMaxSize()
         .padding(innerPadding)
-        .padding(16.dp)
+        .padding(8.dp)
     ) {
       if (cameraPermissionState.value) {
         CameraBox {
