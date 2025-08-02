@@ -7,6 +7,10 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
+cameraVersion = "1.4.2"
+coilVersion = "3.3.0"
+navigationVersion = "2.9.3"
+mlkitVersion = "16.0.1"
 composeBom = "2024.09.00"
 
 [libraries]
@@ -24,13 +28,14 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
-mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version = "16.0.1" }
-mlkit-text-recognition-japanese = { group = "com.google.mlkit", name = "text-recognition-japanese", version = "16.0.1" }
-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version = "1.4.2" }
-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version = "1.4.2" }
-camera-view = { group = "androidx.camera", name = "camera-view", version = "1.4.2" }
-camera-extensions = { group = "androidx.camera", name = "camera-extensions", version = "1.4.2" }
-coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version = "3.3.0" }
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitVersion" }
+mlkit-text-recognition-japanese = { group = "com.google.mlkit", name = "text-recognition-japanese", version.ref = "mlkitVersion" }
+camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraVersion" }
+camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraVersion" }
+camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraVersion" }
+camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "cameraVersion" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilVersion" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
