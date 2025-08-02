@@ -30,6 +30,7 @@ camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version =
 camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version = "1.4.2" }
 camera-view = { group = "androidx.camera", name = "camera-view", version = "1.4.2" }
 camera-extensions = { group = "androidx.camera", name = "camera-extensions", version = "1.4.2" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version = "3.3.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
