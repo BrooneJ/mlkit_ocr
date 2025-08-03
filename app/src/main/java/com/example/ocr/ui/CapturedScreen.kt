@@ -25,7 +25,6 @@ fun CapturedScreen(
     contentAlignment = Alignment.Center,
     modifier = Modifier
       .fillMaxSize()
-      .background(Color.Black)
   ) {
     if (LocalInspectionMode.current) {
       Image(
