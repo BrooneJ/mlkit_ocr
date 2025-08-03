@@ -38,7 +38,7 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "cameraVersion" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilVersion" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationVersion" }
-kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJsonVersion" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJsonVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
