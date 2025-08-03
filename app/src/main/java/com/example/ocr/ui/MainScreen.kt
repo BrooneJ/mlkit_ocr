@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import coil3.compose.AsyncImage
 import com.example.ocr.CameraBox
 import com.example.ocr.TextRecognitionHelper
 
@@ -98,16 +97,6 @@ fun MainScreen(onCaptured: (Uri) -> Unit = {}) {
           .padding(horizontal = 16.dp)
       ) {
         Text("Select Image from Gallery")
-      }
-      Spacer(modifier = Modifier.height(8.dp))
-      capturedImageUri?.let { uri ->
-        Text("Captured Image")
-        AsyncImage(
-          model = uri,
-          contentDescription = "Captured Image",
-          modifier = Modifier
-            .fillMaxSize()
-        )
       }
       Spacer(modifier = Modifier.height(8.dp))
       Text(
