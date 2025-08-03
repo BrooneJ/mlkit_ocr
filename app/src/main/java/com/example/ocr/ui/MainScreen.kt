@@ -31,7 +31,7 @@ import com.example.ocr.CameraBox
 import com.example.ocr.TextRecognitionHelper
 
 @Composable
-fun MainScreen() {
+fun MainScreen(onCaptured: (Uri) -> Unit = {}) {
   var recognizedText by remember { mutableStateOf("Recognized text will appear here.") }
   var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
   var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -80,6 +80,7 @@ fun MainScreen() {
           },
           onCaptured = {
             capturedImageUri = it
+            onCaptured(it)
           })
       } else {
         Box(
