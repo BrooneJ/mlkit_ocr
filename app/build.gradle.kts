@@ -53,6 +53,7 @@ dependencies {
   implementation(libs.camera.view)
   implementation(libs.camera.extensions)
   implementation(libs.coil.compose)
+  implementation(libs.navigation.compose)
 
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)

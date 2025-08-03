@@ -12,6 +12,8 @@ coilVersion = "3.3.0"
 navigationVersion = "2.9.3"
 mlkitVersion = "16.0.1"
 composeBom = "2024.09.00"
+serializationVersion = "2.2.0"
+serializationJsonVersion = "1.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,9 +38,10 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "cameraVersion" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilVersion" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationVersion" }
+kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJsonVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serializationVersion" }
