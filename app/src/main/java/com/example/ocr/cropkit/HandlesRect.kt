@@ -14,10 +14,12 @@ data class HandlesRect(
   val left: Rect = Rect.Zero
 ) {
 
+  // needs for rectangle handles
   fun getCornerHandles(): List<Rect> {
     return listOf(topLeft, topRight, bottomLeft, bottomRight)
   }
 
+  // needs for freeform handles
   fun getAllHandles(): List<Rect> {
     return listOf(topLeft, topRight, bottomLeft, bottomRight, top, bottom, right, left)
   }
