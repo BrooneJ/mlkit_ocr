@@ -40,6 +40,36 @@ internal class CropStateManager(
     reset(bitmap)
   }
 
+  fun updateCanvasSize(canvasSize: Size) {
+    setState(canvasSize, state.value.bitmap)
+  }
+
+  fun crop(): Bitmap {
+    val state = state.value
+    val bitmap = state.bitmap
+    val imageRect = state.imageRect
+    val cropRect = state.cropRect
+
+    val scaleX = bitmap.width / imageRect.width
+    val scaleY = bitmap.height / imageRect.height
+
+    val cropX = ((cropRect.left - imageRect.left) * scaleX).toInt()
+    val cropY = ((cropRect.top - imageRect.top) * scaleY).toInt()
+    val cropWidth = (cropRect.width * scaleX).toInt()
+    val cropHeight = (cropRect.height * scaleY).toInt()
+
+    val x = cropX.coerceIn(0, bitmap.width)
+    val y = cropY.coerceIn(0, bitmap.height)
+    val width = cropWidth.coerceIn(0, bitmap.width - x)
+    val height = cropHeight.coerceIn(0, bitmap.height - y)
+
+    return Bitmap.createBitmap(
+      bitmap,
+      x, y,
+      width, height
+    )
+  }
+
   fun reset(bitmap: Bitmap) {
     coroutineScope.launch {
       setState(
