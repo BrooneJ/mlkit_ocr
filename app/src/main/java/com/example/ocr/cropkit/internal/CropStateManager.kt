@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.core.graphics.scale
 import com.example.ocr.cropkit.CropShape
 import com.example.ocr.cropkit.GridLinesVisibility
+import com.example.ocr.cropkit.util.GestureUtils
 import com.example.ocr.cropkit.util.MathUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -114,7 +115,7 @@ internal class CropStateManager(
           Offset(offsetX, offsetY),
           Size(scaledSize.width, scaledSize.height)
         ),
-        handles = TODO(),
+        handles = GestureUtils.getNewHandleMeasures(cropRect, handleRadiusPx),
         canvasSize = canvasSize,
         gridlinesActive = gridLinesVisibility == GridLinesVisibility.ALWAYS,
         aspectRatio = when (cropShape) {
