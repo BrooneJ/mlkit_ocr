@@ -2,6 +2,7 @@ package com.example.ocr.cropkit.internal
 
 import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -112,6 +113,22 @@ internal class CropStateManager(
       DragMode.Move -> moveCropRect(dragAmount)
       DragMode.None -> {}
     }
+  }
+
+  fun rotateClockwise() = transformBitmap { matrix -> matrix.postRotate(90f) }
+  fun rotateAntiClockwise() = transformBitmap { matrix -> matrix.postRotate(-90f) }
+  fun flipHorizontally() = transformBitmap { matrix -> matrix.postScale(-1f, 1f) }
+  fun flipVertically() = transformBitmap { matrix -> matrix.postScale(1f, -1f) }
+
+  private fun transformBitmap(transformation: (Matrix) -> Unit) {
+    val bitmap = state.value.bitmap
+    val matrix = Matrix().apply(transformation)
+    val newBitmap = Bitmap.createBitmap(
+      bitmap, 0, 0,
+      bitmap.width, bitmap.height,
+      matrix, true
+    )
+    reset(newBitmap)
   }
 
   private fun moveCropRect(dragAmount: Offset) {
