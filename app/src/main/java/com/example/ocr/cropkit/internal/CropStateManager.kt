@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.core.graphics.scale
 import com.example.ocr.cropkit.CropShape
 import com.example.ocr.cropkit.GridLinesVisibility
+import com.example.ocr.cropkit.util.Extensions.isInsideRect
 import com.example.ocr.cropkit.util.GestureUtils
 import com.example.ocr.cropkit.util.MathUtils
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 internal class CropStateManager(
   bitmap: Bitmap,
@@ -68,6 +70,183 @@ internal class CropStateManager(
       x, y,
       width, height
     )
+  }
+
+  fun onDragStart(offset: Offset) {
+
+    val activeHandle = findActiveHandle(offset)
+
+    dragMode = when {
+      activeHandle != null -> DragMode.Handle(activeHandle)
+      offset.isInsideRect(state.value.cropRect) -> DragMode.Move
+      else -> DragMode.None
+    }
+
+    _state.update { cropState ->
+      cropState.copy(
+        isDragging = dragMode != DragMode.None,
+        gridlinesActive = if (gridLinesVisibility == GridLinesVisibility.ON_TOUCH) {
+          dragMode != DragMode.None
+        } else {
+          cropState.gridlinesActive
+        }
+      )
+    }
+  }
+
+  fun onDragEnd() {
+    _state.update { cropState ->
+      cropState.copy(
+        isDragging = false,
+        gridlinesActive = if (gridLinesVisibility != GridLinesVisibility.ALWAYS) {
+          false
+        } else cropState.gridlinesActive
+      )
+    }
+    dragMode = DragMode.None
+  }
+
+  fun onDrag(dragAmount: Offset) {
+    when (val dragMode = dragMode) {
+      is DragMode.Handle -> dragHandles(dragMode.handle, dragAmount)
+      DragMode.Move -> moveCropRect(dragAmount)
+      DragMode.None -> {}
+    }
+  }
+
+  private fun moveCropRect(dragAmount: Offset) {
+
+    val currentRect = state.value.cropRect
+    val imageRect = state.value.imageRect
+
+    val newLeft = (currentRect.left + dragAmount.x).coerceIn(
+      imageRect.left,
+      imageRect.right - currentRect.width
+    )
+    val newTop = (currentRect.top + dragAmount.y).coerceIn(
+      imageRect.top,
+      imageRect.bottom - currentRect.height
+    )
+
+    val newRect = Rect(
+      left = newLeft,
+      top = newTop,
+      right = newLeft + currentRect.width,
+      bottom = newTop + currentRect.height
+    )
+
+    _state.update {
+      it.copy(
+        cropRect = newRect,
+        handles = GestureUtils.getNewHandleMeasures(newRect, handleRadiusPx)
+      )
+    }
+  }
+
+  private fun dragHandles(activeHandle: DragHandle, dragAmount: Offset) {
+    val adjustedDragAmount = if (cropShape is CropShape.FreeForm) {
+      dragAmount
+    } else {
+      getDragAmountForShape(dragAmount, activeHandle)
+    }
+
+    GestureUtils.getNewRectMeasures(
+      activeHandle = activeHandle,
+      dragAmount = adjustedDragAmount,
+      imageRect = state.value.imageRect,
+      cropRect = state.value.cropRect,
+      minCropSize = MIN_CROP_SIZE
+    )?.let { newRect ->
+      _state.update {
+        it.copy(
+          cropRect = newRect,
+          handles = GestureUtils.getNewHandleMeasures(
+            newRect,
+            handleRadiusPx
+          )
+        )
+      }
+    }
+  }
+
+  private fun getDragAmountForShape(dragAmount: Offset, handle: DragHandle): Offset {
+
+    val aspectRatio = state.value.aspectRatio
+    val dx = dragAmount.x
+    val dy = dragAmount.y
+    val xConstraint = abs(dragAmount.x)
+    val xConstraintDeltaY = xConstraint / aspectRatio
+    val yConstraint = abs(dragAmount.y)
+    val yConstraintDeltaX = yConstraint * aspectRatio
+
+    return when (handle) {
+      DragHandle.TopLeft -> {
+        val sign = if (dx < 0 && dy < 0) -1 else 1 // prioritize cropping in
+        val xConstraintCropIn = minOf(xConstraint, xConstraintDeltaY)
+        val yConstraintCropIn = minOf(yConstraint, yConstraintDeltaX)
+        return if (xConstraintCropIn <= yConstraintCropIn) {
+          Offset(sign * xConstraint, sign * xConstraintDeltaY)
+        } else {
+          Offset(sign * yConstraintDeltaX, sign * yConstraint)
+        }
+      }
+
+      DragHandle.TopRight -> {
+        val sign = if (dx > 0 && dy < 0) -1 else 1 // prioritize cropping in
+        val xConstraintCropIn = minOf(xConstraint, xConstraintDeltaY)
+        val yConstraintCropIn = minOf(yConstraint, yConstraintDeltaX)
+        return if (xConstraintCropIn <= yConstraintCropIn) {
+          Offset(-sign * xConstraint, sign * xConstraintDeltaY)
+        } else {
+          Offset(-sign * yConstraintDeltaX, sign * yConstraint)
+        }
+
+      }
+
+      DragHandle.BottomLeft -> {
+        val sign = if (dx < 0 && dy > 0) -1 else 1 // prioritize cropping in
+        val xConstraintCropIn = minOf(xConstraint, xConstraintDeltaY)
+        val yConstraintCropIn = minOf(yConstraint, yConstraintDeltaX)
+        return if (xConstraintCropIn <= yConstraintCropIn) {
+          Offset(sign * xConstraint, -sign * xConstraintDeltaY)
+        } else {
+          Offset(sign * yConstraintDeltaX, -sign * yConstraint)
+        }
+      }
+
+      DragHandle.BottomRight -> {
+        val sign = if (dx > 0 && dy > 0) -1 else 1 // prioritize cropping in
+        val xConstraintCropIn = minOf(xConstraint, xConstraintDeltaY)
+        val yConstraintCropIn = minOf(yConstraint, yConstraintDeltaX)
+        return if (xConstraintCropIn <= yConstraintCropIn) {
+          Offset(-sign * xConstraint, -sign * xConstraintDeltaY)
+        } else {
+          Offset(-sign * yConstraintDeltaX, -sign * yConstraint)
+        }
+      }
+
+      else -> Offset.Zero
+    }
+  }
+
+  private fun findActiveHandle(offset: Offset): DragHandle? {
+    val handles = if (cropShape is CropShape.FreeForm) {
+      state.value.handles.getAllNamedHandles()
+    } else {
+      state.value.handles.getCornerNamedHandles()
+    }
+
+    handles.forEach { (handle, handleType) ->
+      val padding = touchPadding.value * density
+      val paddedHandle = Rect(
+        Offset(handle.left - padding, handle.top - padding),
+        Size(handle.width + padding * 2, handle.height + padding * 2)
+      )
+      if (offset.isInsideRect(paddedHandle)) {
+        return handleType
+      }
+    }
+    return null
   }
 
   fun reset(bitmap: Bitmap) {
@@ -155,5 +334,9 @@ internal class CropStateManager(
         }
       )
     }
+  }
+
+  companion object {
+    private const val MIN_CROP_SIZE = 250f // Minimum size for crop rectangle
   }
 }
