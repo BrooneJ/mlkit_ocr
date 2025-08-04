@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import coil3.compose.AsyncImage
 import com.example.ocr.R
 import com.example.ocr.ui.theme.OCRTheme
 
@@ -29,11 +28,7 @@ fun CapturedScreen(
         painter = painterResource(R.drawable.img_c02),
         contentDescription = null
       )
-    } else {
-      AsyncImage(
-        model = capturedImageUri,
-        contentDescription = null,
-      )
+      return
     }
   }
 }
