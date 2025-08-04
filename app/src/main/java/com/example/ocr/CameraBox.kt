@@ -98,6 +98,11 @@ fun CameraBox(onTextRecognized: (String) -> Unit, onCaptured: (Uri) -> Unit) {
     )
     Button(
       onClick = {
+        context.cacheDir.listFiles()?.forEach { file ->
+          if (file.name.startsWith("capture_image_") && file.extension == "jpg") {
+            file.delete() // Clean up old images
+          }
+        }
         val outputFile = File(
           context.cacheDir,
           "capture_image_${System.currentTimeMillis()}.jpg"
