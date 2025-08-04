@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.ocr.CameraBox
-import com.example.ocr.TextRecognitionHelper
 
 @Composable
 fun MainScreen(onCaptured: (Uri) -> Unit = {}) {
@@ -39,10 +38,8 @@ fun MainScreen(onCaptured: (Uri) -> Unit = {}) {
     contract = ActivityResultContracts.GetContent()
   ) { uri ->
     selectedImageUri = uri
-    uri?.let {
-      TextRecognitionHelper.recognizeTextFromUri(context, uri) { result ->
-        recognizedText = result
-      }
+    if (uri != null) {
+      onCaptured(uri)
     }
   }
   val cameraPermissionState = remember { mutableStateOf(false) }
