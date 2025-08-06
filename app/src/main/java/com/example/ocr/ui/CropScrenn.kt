@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.example.ocr.R
 import com.example.ocr.cropkit.CropDefaults
 import com.example.ocr.cropkit.CropRatio
@@ -48,7 +51,8 @@ import com.example.ocr.cropkit.rememberCropController
 
 @Composable
 fun CropScreen(
-  capturedImageUri: Uri
+  capturedImageUri: Uri,
+  onCropComplete: (Uri) -> Unit = {}
 ) {
   Box(
     modifier = Modifier
@@ -77,9 +81,30 @@ fun CropScreen(
       modifier = Modifier.fillMaxSize(),
       topBar = {
         TopAppBar(
-          title = { Text("Crop") }
+          title = { Text("Crop") },
+          actions = {
+            IconButton(
+              onClick = {
+                cropController?.crop()?.let {
+                  // TODO: refactor this code
+                  val croppedUri = MediaStore.Images.Media.insertImage(
+                    context.contentResolver,
+                    it,
+                    "Cropped Image",
+                    "Cropped using OCR App"
+                  ).toUri()
+                  onCropComplete(croppedUri)
+                }
+              }
+            ) {
+              Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Crop and Save",
+              )
+            }
+          }
         )
-      }
+      },
     ) { innerPadding ->
 
       Surface(

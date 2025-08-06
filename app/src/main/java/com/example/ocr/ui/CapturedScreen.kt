@@ -20,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
@@ -33,6 +34,7 @@ import com.example.ocr.ui.theme.OCRTheme
 @Composable
 fun CapturedScreen(
   capturedImageUri: Uri,
+  onCrop: (Uri) -> Unit = {}
 ) {
   Box(
     modifier = Modifier
@@ -64,7 +66,8 @@ fun CapturedScreen(
       ) {
         Column(
           modifier = Modifier.fillMaxSize(),
-          verticalArrangement = Arrangement.SpaceBetween
+          verticalArrangement = Arrangement.SpaceBetween,
+          horizontalAlignment = Alignment.CenterHorizontally
         ) {
           Spacer(Modifier.height(24.dp))
 
@@ -80,7 +83,9 @@ fun CapturedScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
           ) {
             IconButton(
-              onClick = {}
+              onClick = {
+                onCrop(capturedImageUri)
+              }
             ) {
               Icon(
                 painter = painterResource(id = R.drawable.crop),

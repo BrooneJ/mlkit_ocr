@@ -19,3 +19,17 @@ data class TakenPictureRoute(
     }
   }
 }
+
+@Serializable
+data class CropRoute(
+  val encodedUri: String,
+) {
+  val uri: Uri
+    get() = Uri.parse(Uri.decode(encodedUri))
+
+  companion object {
+    fun create(uri: Uri): CropRoute {
+      return CropRoute(encodedUri = Uri.encode(uri.toString()))
+    }
+  }
+}
