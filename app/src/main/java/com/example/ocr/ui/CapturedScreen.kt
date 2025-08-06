@@ -73,7 +73,10 @@ fun CapturedScreen(
 
           AsyncImage(
             model = capturedImageUri,
-            contentDescription = null
+            contentDescription = null,
+            modifier = Modifier
+              .fillMaxWidth()
+              .weight(1f),
           )
 
           Row(
