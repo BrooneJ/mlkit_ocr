@@ -8,7 +8,6 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +50,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ocr.R
 import com.example.ocr.cropkit.CropDefaults
 import com.example.ocr.cropkit.CropRatio
@@ -159,22 +159,36 @@ fun CropScreen(
           ) {
 
             if (cropController != null) {
-              var cropBound by remember { mutableStateOf<Rect?>(null) }
+              val cropState = cropController?.state?.collectAsStateWithLifecycle()?.value
+              var cropperBoundsInRoot by remember { mutableStateOf<Rect?>(null) }
 
               EdgeExclusionLayer(
                 modifier = Modifier
                   .weight(1f),
                 leftDp = 48.dp,
                 rightDp = 48.dp,
-                targetBounds = cropBound
+                // 3) 루트 기준 이미지 사각형을 넘겨줌
+                targetBounds = remember(cropperBoundsInRoot, cropState?.imageRect) {
+                  val b = cropperBoundsInRoot
+                  val img = cropState?.imageRect
+                  if (b != null && img != null) {
+                    // Compose Rect은 Float px 단위. 루트 좌표로 translate
+                    Rect(
+                      left = b.left + img.left,
+                      top = b.top + img.top,
+                      right = b.left + img.right,
+                      bottom = b.top + img.bottom
+                    )
+                  } else null
+                }
               ) {
                 ImageCropper(
                   modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .onGloballyPositioned { coordinates ->
-                      cropBound = coordinates.boundsInRoot()
-                      Log.d("CropScreen", "Crop bounds: $cropBound")
+                    // 2) ImageCropper(=Canvas) 의 루트 기준 bounds
+                    .onGloballyPositioned { coords ->
+                      cropperBoundsInRoot = coords.boundsInRoot()
                     },
                   cropController = cropController
                 )
@@ -335,9 +349,9 @@ fun EdgeExclusionLayer(
 
         // 200dp 안에서 3분할 예시 (겹치지 않게)
         val slice = minOf(maxH, targetHeight) / 3
-        val top1 = t
+        val top1 = t - slice / 2
         val top2 = t + (targetHeight - slice) / 2   // ✅ t 보정
-        val top3 = b - slice
+        val top3 = b - slice / 2
 
         val rects = buildList {
           // 왼쪽 3슬라이스
