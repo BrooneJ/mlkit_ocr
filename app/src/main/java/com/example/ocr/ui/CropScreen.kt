@@ -49,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ocr.R
 import com.example.ocr.cropkit.CropDefaults
@@ -58,6 +57,7 @@ import com.example.ocr.cropkit.CropShape
 import com.example.ocr.cropkit.GridLinesType
 import com.example.ocr.cropkit.ImageCropper
 import com.example.ocr.cropkit.rememberCropController
+import com.example.ocr.utils.saveTempBitmapToCache
 
 @Composable
 fun CropScreen(
@@ -121,13 +121,7 @@ fun CropScreen(
             IconButton(
               onClick = {
                 cropController?.crop()?.let {
-                  // TODO: refactor this code because it is save cropped image to MediaStore but we don't need to save it to MediaStore
-                  val croppedUri = MediaStore.Images.Media.insertImage(
-                    context.contentResolver,
-                    it,
-                    "Cropped Image",
-                    "Cropped using OCR App"
-                  ).toUri()
+                  val croppedUri = saveTempBitmapToCache(context, it)
                   onCropComplete(croppedUri)
                 }
               }
