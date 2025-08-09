@@ -121,7 +121,7 @@ fun CropScreen(
             IconButton(
               onClick = {
                 cropController?.crop()?.let {
-                  // TODO: refactor this code
+                  // TODO: refactor this code because it is save cropped image to MediaStore but we don't need to save it to MediaStore
                   val croppedUri = MediaStore.Images.Media.insertImage(
                     context.contentResolver,
                     it,
