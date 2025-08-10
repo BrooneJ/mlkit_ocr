@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,25 +32,22 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ocr.R
 import com.example.ocr.cropkit.CropDefaults
@@ -66,30 +64,6 @@ fun CropScreen(
   onCropComplete: (Uri) -> Unit = {}
 ) {
 
-// Uncomment the following lines if you want to use Immersive mode
-
-//  val activity = LocalActivity.current as ComponentActivity
-//  val lifecycleOwner = LocalLifecycleOwner.current
-//
-//  DisposableEffect(lifecycleOwner) {
-//    val window = activity.window
-//    val controller = window.insetsController
-//
-//    controller?.hide(WindowInsets.Type.systemBars())
-//    controller?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-//
-//    val observer = LifecycleEventObserver { _, event ->
-//      if (event == Lifecycle.Event.ON_DESTROY || event == Lifecycle.Event.ON_STOP) {
-//        controller?.show(WindowInsets.Type.systemBars())
-//      }
-//    }
-//    lifecycleOwner.lifecycle.addObserver(observer)
-//
-//    onDispose {
-//      controller?.show(WindowInsets.Type.systemBars())
-//      lifecycleOwner.lifecycle.removeObserver(observer)
-//    }
-//  }
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -301,121 +275,103 @@ fun CropScreen(
   }
 }
 
+enum class Side { Left, Right }
+enum class Slot { Top, Middle, Bottom }
+
 @Composable
 fun EdgeExclusionLayer(
   modifier: Modifier = Modifier,
-  leftDp: Dp = 48.dp,
-  rightDp: Dp = 48.dp,
   targetBounds: Rect? = null,
-  debugOverlay: Boolean = true,
   content: @Composable () -> Unit,
 ) {
-  val view = LocalView.current
+  if (targetBounds == null) {
+    content()
+    return
+  }
   val density = LocalDensity.current
-  var lastRects by remember { mutableStateOf(emptyList<android.graphics.Rect>()) }
 
-  // save the position of the layer in root coordinates
-  var layerOffset by remember { mutableStateOf(Offset.Zero) }
+  val makeRect: (LayoutCoordinates, Side, Slot) -> Rect = { coords, side, slot ->
+    sliceRectLocal(
+      coords = coords,
+      targetBounds = targetBounds,
+      density = density,
+      side = side,
+      slot = slot
+    )
+  }
+
+  val exclusionModifier =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+      Modifier
+        // The left side 3 slices
+        .systemGestureExclusion { coords -> makeRect(coords, Side.Left, Slot.Top) }
+        .systemGestureExclusion { coords -> makeRect(coords, Side.Left, Slot.Middle) }
+        .systemGestureExclusion { coords -> makeRect(coords, Side.Left, Slot.Bottom) }
+        // The right side 3 slices
+        .systemGestureExclusion { coords -> makeRect(coords, Side.Right, Slot.Top) }
+        .systemGestureExclusion { coords -> makeRect(coords, Side.Right, Slot.Middle) }
+        .systemGestureExclusion { coords -> makeRect(coords, Side.Right, Slot.Bottom) }
+    else Modifier
 
   Box(
     modifier
       .fillMaxWidth()
-      .onGloballyPositioned { coords ->
-        layerOffset = coords.positionInRoot()
-      }
+      .then(exclusionModifier)
   ) {
-    DisposableEffect(targetBounds) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && targetBounds != null) {
-        val width = view.width
-        val height = view.height
-        val leftExclusionPx = with(density) { leftDp.roundToPx() }
-        val rightExclusionPx = with(density) { rightDp.roundToPx() }
-        // For the exclusion rects, we can only use a maximum height of 200dp
-        val maxH = with(density) { 200.dp.roundToPx() }
-
-        val top = targetBounds.top.toInt().coerceIn(0, height)
-        val bottom = targetBounds.bottom.toInt().coerceIn(0, height)
-        val targetHeight = (bottom - top).coerceAtLeast(0)
-
-        // Divide the target height into 3 slices because we want to create 3 exclusion rects on each side
-        val slice = minOf(maxH, targetHeight) / 3
-        val topPositionOfImage = top - slice / 2
-        val middlePositionOfImage = top + (targetHeight - slice) / 2
-        val bottomPositionOfImage = bottom - slice / 2
-
-        val rects = buildList {
-          // Slice of the left side
-          add(
-            android.graphics.Rect(
-              0,
-              topPositionOfImage,
-              leftExclusionPx,
-              topPositionOfImage + slice
-            )
-          )
-          add(
-            android.graphics.Rect(
-              0,
-              middlePositionOfImage,
-              leftExclusionPx,
-              middlePositionOfImage + slice
-            )
-          )
-          add(
-            android.graphics.Rect(
-              0,
-              bottomPositionOfImage,
-              leftExclusionPx,
-              bottomPositionOfImage + slice
-            )
-          )
-          // Slice of the right side
-          add(
-            android.graphics.Rect(
-              width - rightExclusionPx,
-              topPositionOfImage,
-              width,
-              topPositionOfImage + slice
-            )
-          )
-          add(
-            android.graphics.Rect(
-              width - rightExclusionPx,
-              middlePositionOfImage,
-              width,
-              middlePositionOfImage + slice
-            )
-          )
-          add(
-            android.graphics.Rect(
-              width - rightExclusionPx,
-              bottomPositionOfImage,
-              width,
-              bottomPositionOfImage + slice
-            )
-          )
-        }
-
-        view.setSystemGestureExclusionRects(rects)
-        lastRects = rects
-      }
-
-      onDispose {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          view.setSystemGestureExclusionRects(emptyList())
-        }
-        lastRects = emptyList()
-      }
-    }
-
-    // Draw the exclusion rects as a debug overlay
-    ExclusionDebugOverlay(
-      rects = lastRects,
-      layerOffset = layerOffset,
-      enabled = debugOverlay
-    )
-
     content()
+  }
+}
+
+// The function creates 6 slices of Rects for the left and right sides of the cropper
+private fun sliceRectLocal(
+  coords: LayoutCoordinates,
+  targetBounds: Rect,
+  density: Density,
+  leftDp: Dp = 48.dp,
+  rightDp: Dp = 48.dp,
+  side: Side, // "left" or "right"
+  slot: Slot, // "top", "middle", or "bottom"
+): Rect {
+
+  val widthLocal = coords.size.width.toFloat()
+  val heightLocal = coords.size.height.toFloat()
+
+  // 이 노드(Box)의 루트 기준 top을 가져와, 루트→로컬 보정
+  val nodeTopInRoot = coords.boundsInRoot().top
+
+  // 루트 기준 타깃(top/bottom) → 로컬 기준으로 변환 + 뷰 경계 클램프
+  val topLocal = (targetBounds.top - nodeTopInRoot).coerceIn(0f, heightLocal)
+  val bottomLocal = (targetBounds.bottom - nodeTopInRoot).coerceIn(0f, heightLocal)
+  val targetH = (bottomLocal - topLocal).coerceAtLeast(0f)
+
+  // dp → px (Float). 한 엣지에서 사용할 수 있는 최대 높이 200dp 제한
+  val leftPx = with(density) { leftDp.toPx() }
+  val rightPx = with(density) { rightDp.toPx() }
+  val maxHPx = with(density) { 200.dp.toPx() }
+
+  val sliceH = (minOf(maxHPx, targetH)) / 3f
+  if (sliceH <= 0f) return Rect.Zero
+
+  val yTop = when (slot) {
+    Slot.Top -> topLocal - sliceH / 2f
+    Slot.Middle -> topLocal + (targetH - sliceH) / 2f
+    else -> bottomLocal - sliceH / 2f
+  }.coerceIn(0f, (heightLocal - sliceH).coerceAtLeast(0f))
+
+  return if (side == Side.Left) {
+    Rect(
+      left = 0f,
+      top = yTop,
+      right = leftPx.coerceAtMost(widthLocal),
+      bottom = (yTop + sliceH).coerceAtMost(heightLocal)
+    )
+  } else {
+    Rect(
+      left = (widthLocal - rightPx).coerceAtLeast(0f),
+      top = yTop,
+      right = widthLocal,
+      bottom = (yTop + sliceH).coerceAtMost(heightLocal)
+    )
   }
 }
 
@@ -427,40 +383,5 @@ private fun Uri.toBitmap(context: Context): Bitmap? {
   } else {
     val source = ImageDecoder.createSource(context.contentResolver, this)
     ImageDecoder.decodeBitmap(source)
-  }
-}
-
-@Composable
-private fun ExclusionDebugOverlay(
-  rects: List<android.graphics.Rect>,
-  layerOffset: Offset,
-  enabled: Boolean = true
-) {
-  if (!enabled) return
-  androidx.compose.foundation.Canvas(
-    modifier = Modifier
-      .fillMaxSize()
-      .zIndex(999f)
-  ) {
-    val ox = layerOffset.x
-    val oy = layerOffset.y
-    rects.forEach { r ->
-      val left = r.left.toFloat() - ox
-      val top = r.top.toFloat() - oy
-      val width = (r.right - r.left).toFloat()
-      val height = (r.bottom - r.top).toFloat()
-
-      drawRect(
-        color = androidx.compose.ui.graphics.Color(1f, 0f, 0f, 0.25f),
-        topLeft = Offset(left, top),
-        size = androidx.compose.ui.geometry.Size(width, height)
-      )
-      drawRect(
-        color = androidx.compose.ui.graphics.Color(1f, 0f, 0f, 0.9f),
-        topLeft = Offset(left, top),
-        size = androidx.compose.ui.geometry.Size(width, height),
-        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f)
-      )
-    }
   }
 }
