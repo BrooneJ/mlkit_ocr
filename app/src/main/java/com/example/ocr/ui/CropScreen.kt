@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -143,159 +144,154 @@ fun CropScreen(
         color = MaterialTheme.colorScheme.background
       ) {
         Column(
-
+          modifier = Modifier
+            .fillMaxWidth(),
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .weight(1f)
-          ) {
 
-            if (cropController != null) {
-              val cropState = cropController?.state?.collectAsStateWithLifecycle()?.value
-              var cropperBoundsInRoot by remember { mutableStateOf<Rect?>(null) }
+          if (cropController != null) {
+            val cropState = cropController?.state?.collectAsStateWithLifecycle()?.value
+            var cropperBoundsInRoot by remember { mutableStateOf<Rect?>(null) }
 
-              EdgeExclusionLayer(
+            EdgeExclusionLayer(
+              modifier = Modifier
+                .weight(1f),
+              leftDp = 48.dp,
+              rightDp = 48.dp,
+              // 3) 루트 기준 이미지 사각형을 넘겨줌
+              targetBounds = remember(cropperBoundsInRoot, cropState?.imageRect) {
+                val b = cropperBoundsInRoot
+                val img = cropState?.imageRect
+                if (b != null && img != null) {
+                  // Compose Rect은 Float px 단위. 루트 좌표로 translate
+                  Rect(
+                    left = b.left + img.left,
+                    top = b.top + img.top,
+                    right = b.left + img.right,
+                    bottom = b.top + img.bottom
+                  )
+                } else null
+              }
+            ) {
+              ImageCropper(
                 modifier = Modifier
-                  .weight(1f),
-                leftDp = 48.dp,
-                rightDp = 48.dp,
-                // 3) 루트 기준 이미지 사각형을 넘겨줌
-                targetBounds = remember(cropperBoundsInRoot, cropState?.imageRect) {
-                  val b = cropperBoundsInRoot
-                  val img = cropState?.imageRect
-                  if (b != null && img != null) {
-                    // Compose Rect은 Float px 단위. 루트 좌표로 translate
-                    Rect(
-                      left = b.left + img.left,
-                      top = b.top + img.top,
-                      right = b.left + img.right,
-                      bottom = b.top + img.bottom
-                    )
-                  } else null
+                  .fillMaxWidth()
+                  .weight(1f)
+                  // 2) ImageCropper(=Canvas) 의 루트 기준 bounds
+                  .onGloballyPositioned { coords ->
+                    cropperBoundsInRoot = coords.boundsInRoot()
+                  },
+                cropController = cropController
+              )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            SingleChoiceSegmentedButtonRow(
+              modifier = Modifier
+                .fillMaxWidth()
+            ) {
+
+              SegmentedButton(
+                selected = cropShape == CropShape.FreeForm,
+                onClick = { cropShape = CropShape.FreeForm },
+                shape = SegmentedButtonDefaults.itemShape(
+                  index = 0,
+                  count = 4
+                )
+              ) {
+                Text("Free-Form")
+              }
+
+              SegmentedButton(
+                selected = cropShape == CropShape.Original,
+                onClick = { cropShape = CropShape.Original },
+                shape = SegmentedButtonDefaults.itemShape(
+                  index = 1,
+                  count = 4
+                )
+              ) {
+                Text("Original")
+              }
+
+              SegmentedButton(
+                selected = cropShape is CropShape.AspectRatio && gridLinesType == GridLinesType.CROSSHAIR,
+                onClick = {
+                  cropShape = CropShape.AspectRatio(CropRatio.SQUARE)
+                  gridLinesType = GridLinesType.CROSSHAIR
+                },
+                shape = SegmentedButtonDefaults.itemShape(
+                  index = 2,
+                  count = 4
+                )
+              ) {
+                Text("Square")
+              }
+
+              SegmentedButton(
+                selected = cropShape is CropShape.AspectRatio && gridLinesType == GridLinesType.GRID_AND_CIRCLE,
+                onClick = {
+                  cropShape = CropShape.AspectRatio(CropRatio.SQUARE)
+                  gridLinesType = GridLinesType.GRID_AND_CIRCLE
+                },
+                shape = SegmentedButtonDefaults.itemShape(
+                  index = 3,
+                  count = 4
+                )
+              ) {
+                Text("Circle")
+              }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+
+              IconButton(
+                onClick = {
+                  cropController.rotateAntiClockwise()
                 }
               ) {
-                ImageCropper(
-                  modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    // 2) ImageCropper(=Canvas) 의 루트 기준 bounds
-                    .onGloballyPositioned { coords ->
-                      cropperBoundsInRoot = coords.boundsInRoot()
-                    },
-                  cropController = cropController
+                Icon(
+                  painter = painterResource(R.drawable.ic_rotate_acw),
+                  contentDescription = "Rotate Anti-Clockwise",
                 )
               }
 
-              Spacer(Modifier.height(16.dp))
-
-              SingleChoiceSegmentedButtonRow(
-                modifier = Modifier
-                  .fillMaxWidth()
+              IconButton(
+                onClick = {
+                  cropController.rotateClockwise()
+                }
               ) {
-
-                SegmentedButton(
-                  selected = cropShape == CropShape.FreeForm,
-                  onClick = { cropShape = CropShape.FreeForm },
-                  shape = SegmentedButtonDefaults.itemShape(
-                    index = 0,
-                    count = 4
-                  )
-                ) {
-                  Text("Free-Form")
-                }
-
-                SegmentedButton(
-                  selected = cropShape == CropShape.Original,
-                  onClick = { cropShape = CropShape.Original },
-                  shape = SegmentedButtonDefaults.itemShape(
-                    index = 1,
-                    count = 4
-                  )
-                ) {
-                  Text("Original")
-                }
-
-                SegmentedButton(
-                  selected = cropShape is CropShape.AspectRatio && gridLinesType == GridLinesType.CROSSHAIR,
-                  onClick = {
-                    cropShape = CropShape.AspectRatio(CropRatio.SQUARE)
-                    gridLinesType = GridLinesType.CROSSHAIR
-                  },
-                  shape = SegmentedButtonDefaults.itemShape(
-                    index = 2,
-                    count = 4
-                  )
-                ) {
-                  Text("Square")
-                }
-
-                SegmentedButton(
-                  selected = cropShape is CropShape.AspectRatio && gridLinesType == GridLinesType.GRID_AND_CIRCLE,
-                  onClick = {
-                    cropShape = CropShape.AspectRatio(CropRatio.SQUARE)
-                    gridLinesType = GridLinesType.GRID_AND_CIRCLE
-                  },
-                  shape = SegmentedButtonDefaults.itemShape(
-                    index = 3,
-                    count = 4
-                  )
-                ) {
-                  Text("Circle")
-                }
+                Icon(
+                  painter = painterResource(R.drawable.ic_rotate_cw),
+                  contentDescription = "Rotate Clockwise",
+                )
               }
 
-              Spacer(Modifier.height(16.dp))
-
-              Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+              IconButton(
+                onClick = {
+                  cropController.flipVertically()
+                }
               ) {
+                Icon(
+                  painter = painterResource(R.drawable.ic_flip_vert),
+                  contentDescription = "Flip Vertically",
+                )
+              }
 
-                IconButton(
-                  onClick = {
-                    cropController.rotateAntiClockwise()
-                  }
-                ) {
-                  Icon(
-                    painter = painterResource(R.drawable.ic_rotate_acw),
-                    contentDescription = "Rotate Anti-Clockwise",
-                  )
+              IconButton(
+                onClick = {
+                  cropController.flipHorizontally()
                 }
-
-                IconButton(
-                  onClick = {
-                    cropController.rotateClockwise()
-                  }
-                ) {
-                  Icon(
-                    painter = painterResource(R.drawable.ic_rotate_cw),
-                    contentDescription = "Rotate Clockwise",
-                  )
-                }
-
-                IconButton(
-                  onClick = {
-                    cropController.flipVertically()
-                  }
-                ) {
-                  Icon(
-                    painter = painterResource(R.drawable.ic_flip_vert),
-                    contentDescription = "Flip Vertically",
-                  )
-                }
-
-                IconButton(
-                  onClick = {
-                    cropController.flipHorizontally()
-                  }
-                ) {
-                  Icon(
-                    painter = painterResource(R.drawable.ic_flip_horiz),
-                    contentDescription = "Flip Horizontally",
-                  )
-                }
+              ) {
+                Icon(
+                  painter = painterResource(R.drawable.ic_flip_horiz),
+                  contentDescription = "Flip Horizontally",
+                )
               }
             }
           }
@@ -311,7 +307,7 @@ fun EdgeExclusionLayer(
   modifier: Modifier = Modifier,
   leftDp: Dp = 48.dp,
   rightDp: Dp = 48.dp,
-  targetBounds: androidx.compose.ui.geometry.Rect? = null,
+  targetBounds: Rect? = null,
   debugOverlay: Boolean = true,
   content: @Composable () -> Unit,
 ) {
@@ -320,7 +316,7 @@ fun EdgeExclusionLayer(
   var lastRects by remember { mutableStateOf(emptyList<android.graphics.Rect>()) }
 
   // 👇 이 박스가 루트 기준 어디에 있는지 저장
-  var layerOffset by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+  var layerOffset by remember { mutableStateOf(Offset.Zero) }
 
   Box(
     modifier
@@ -395,7 +391,7 @@ private fun Uri.toBitmap(context: Context): Bitmap? {
 @Composable
 private fun ExclusionDebugOverlay(
   rects: List<android.graphics.Rect>,
-  layerOffset: androidx.compose.ui.geometry.Offset, // ★ 추가
+  layerOffset: Offset, // ★ 추가
   enabled: Boolean = true
 ) {
   if (!enabled) return
@@ -414,12 +410,12 @@ private fun ExclusionDebugOverlay(
 
       drawRect(
         color = androidx.compose.ui.graphics.Color(1f, 0f, 0f, 0.25f),
-        topLeft = androidx.compose.ui.geometry.Offset(left, top),
+        topLeft = Offset(left, top),
         size = androidx.compose.ui.geometry.Size(width, height)
       )
       drawRect(
         color = androidx.compose.ui.graphics.Color(1f, 0f, 0f, 0.9f),
-        topLeft = androidx.compose.ui.geometry.Offset(left, top),
+        topLeft = Offset(left, top),
         size = androidx.compose.ui.geometry.Size(width, height),
         style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f)
       )
