@@ -150,7 +150,7 @@ fun CropScreen(
         ) {
 
           if (cropController != null) {
-            val cropState = cropController?.state?.collectAsStateWithLifecycle()?.value
+            val cropState = cropController.state.collectAsStateWithLifecycle().value
             var cropperBoundsInRoot by remember { mutableStateOf<Rect?>(null) }
 
             EdgeExclusionLayer(
@@ -159,10 +159,10 @@ fun CropScreen(
               leftDp = 48.dp,
               rightDp = 48.dp,
               // 3) 루트 기준 이미지 사각형을 넘겨줌
-              targetBounds = remember(cropperBoundsInRoot, cropState?.imageRect) {
+              targetBounds = remember(cropperBoundsInRoot, cropState.imageRect) {
                 val b = cropperBoundsInRoot
-                val img = cropState?.imageRect
-                if (b != null && img != null) {
+                val img = cropState.imageRect
+                if (b != null) {
                   // Compose Rect은 Float px 단위. 루트 좌표로 translate
                   Rect(
                     left = b.left + img.left,
