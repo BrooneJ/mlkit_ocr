@@ -152,32 +152,31 @@ fun CropScreen(
           if (cropController != null) {
             val cropState = cropController.state.collectAsStateWithLifecycle().value
             var cropperBoundsInRoot by remember { mutableStateOf<Rect?>(null) }
+            // This Rect will be used to calculate the image rectangle in the root layout coordinates
+            val targetBounds = remember(cropperBoundsInRoot, cropState.imageRect) {
+              val bounds = cropperBoundsInRoot
+              val img = cropState.imageRect
+              if (bounds != null) {
+                Rect(
+                  left = bounds.left + img.left,
+                  top = bounds.top + img.top,
+                  right = bounds.left + img.right,
+                  bottom = bounds.top + img.bottom
+                )
+              } else null
+            }
 
             EdgeExclusionLayer(
               modifier = Modifier
                 .weight(1f),
-              leftDp = 48.dp,
-              rightDp = 48.dp,
-              // 3) 루트 기준 이미지 사각형을 넘겨줌
-              targetBounds = remember(cropperBoundsInRoot, cropState.imageRect) {
-                val b = cropperBoundsInRoot
-                val img = cropState.imageRect
-                if (b != null) {
-                  // Compose Rect은 Float px 단위. 루트 좌표로 translate
-                  Rect(
-                    left = b.left + img.left,
-                    top = b.top + img.top,
-                    right = b.left + img.right,
-                    bottom = b.top + img.bottom
-                  )
-                } else null
-              }
+              // 3) Delivers the image rectangle in root coordinates
+              targetBounds = targetBounds
             ) {
               ImageCropper(
                 modifier = Modifier
                   .fillMaxWidth()
                   .weight(1f)
-                  // 2) ImageCropper(=Canvas) 의 루트 기준 bounds
+                  // 2) This is the bounds of the cropper in the root layout
                   .onGloballyPositioned { coords ->
                     cropperBoundsInRoot = coords.boundsInRoot()
                   },
@@ -315,43 +314,86 @@ fun EdgeExclusionLayer(
   val density = LocalDensity.current
   var lastRects by remember { mutableStateOf(emptyList<android.graphics.Rect>()) }
 
-  // 👇 이 박스가 루트 기준 어디에 있는지 저장
+  // save the position of the layer in root coordinates
   var layerOffset by remember { mutableStateOf(Offset.Zero) }
 
   Box(
     modifier
-      .fillMaxWidth() // 필요에 맞게
+      .fillMaxWidth()
       .onGloballyPositioned { coords ->
-        layerOffset = coords.positionInRoot() // 루트기준 (x,y)
+        layerOffset = coords.positionInRoot()
       }
   ) {
     DisposableEffect(targetBounds) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && targetBounds != null) {
-        val w = view.width
-        val h = view.height
-        val leftPx = with(density) { leftDp.roundToPx() }
-        val rightPx = with(density) { rightDp.roundToPx() }
-        val maxH = with(density) { 200.dp.roundToPx() } // 엣지당 합집합 200dp
+        val width = view.width
+        val height = view.height
+        val leftExclusionPx = with(density) { leftDp.roundToPx() }
+        val rightExclusionPx = with(density) { rightDp.roundToPx() }
+        // For the exclusion rects, we can only use a maximum height of 200dp
+        val maxH = with(density) { 200.dp.roundToPx() }
 
-        val t = targetBounds.top.toInt().coerceIn(0, h)
-        val b = targetBounds.bottom.toInt().coerceIn(0, h)
-        val targetHeight = (b - t).coerceAtLeast(0)
+        val top = targetBounds.top.toInt().coerceIn(0, height)
+        val bottom = targetBounds.bottom.toInt().coerceIn(0, height)
+        val targetHeight = (bottom - top).coerceAtLeast(0)
 
-        // 200dp 안에서 3분할 예시 (겹치지 않게)
+        // Divide the target height into 3 slices because we want to create 3 exclusion rects on each side
         val slice = minOf(maxH, targetHeight) / 3
-        val top1 = t - slice / 2
-        val top2 = t + (targetHeight - slice) / 2   // ✅ t 보정
-        val top3 = b - slice / 2
+        val topPositionOfImage = top - slice / 2
+        val middlePositionOfImage = top + (targetHeight - slice) / 2
+        val bottomPositionOfImage = bottom - slice / 2
 
         val rects = buildList {
-          // 왼쪽 3슬라이스
-          add(android.graphics.Rect(0, top1, leftPx, top1 + slice))
-          add(android.graphics.Rect(0, top2, leftPx, top2 + slice))
-          add(android.graphics.Rect(0, top3, leftPx, top3 + slice))
-          // 오른쪽 3슬라이스
-          add(android.graphics.Rect(w - rightPx, top1, w, top1 + slice))
-          add(android.graphics.Rect(w - rightPx, top2, w, top2 + slice))
-          add(android.graphics.Rect(w - rightPx, top3, w, top3 + slice))
+          // Slice of the left side
+          add(
+            android.graphics.Rect(
+              0,
+              topPositionOfImage,
+              leftExclusionPx,
+              topPositionOfImage + slice
+            )
+          )
+          add(
+            android.graphics.Rect(
+              0,
+              middlePositionOfImage,
+              leftExclusionPx,
+              middlePositionOfImage + slice
+            )
+          )
+          add(
+            android.graphics.Rect(
+              0,
+              bottomPositionOfImage,
+              leftExclusionPx,
+              bottomPositionOfImage + slice
+            )
+          )
+          // Slice of the right side
+          add(
+            android.graphics.Rect(
+              width - rightExclusionPx,
+              topPositionOfImage,
+              width,
+              topPositionOfImage + slice
+            )
+          )
+          add(
+            android.graphics.Rect(
+              width - rightExclusionPx,
+              middlePositionOfImage,
+              width,
+              middlePositionOfImage + slice
+            )
+          )
+          add(
+            android.graphics.Rect(
+              width - rightExclusionPx,
+              bottomPositionOfImage,
+              width,
+              bottomPositionOfImage + slice
+            )
+          )
         }
 
         view.setSystemGestureExclusionRects(rects)
@@ -366,10 +408,10 @@ fun EdgeExclusionLayer(
       }
     }
 
-    // 👇 루트 좌표로 만든 rects를, 현재 레이어 로컬 좌표로 그리기 위해 offset을 빼줍니다.
+    // Draw the exclusion rects as a debug overlay
     ExclusionDebugOverlay(
       rects = lastRects,
-      layerOffset = layerOffset, // ★ 추가
+      layerOffset = layerOffset,
       enabled = debugOverlay
     )
 
@@ -391,7 +433,7 @@ private fun Uri.toBitmap(context: Context): Bitmap? {
 @Composable
 private fun ExclusionDebugOverlay(
   rects: List<android.graphics.Rect>,
-  layerOffset: Offset, // ★ 추가
+  layerOffset: Offset,
   enabled: Boolean = true
 ) {
   if (!enabled) return
