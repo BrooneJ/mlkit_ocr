@@ -383,10 +383,15 @@ private fun sliceRectLocal(
 @Suppress("Deprecation")
 private fun Uri.toBitmap(context: Context): Bitmap? {
 
-  return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-    MediaStore.Images.Media.getBitmap(context.contentResolver, this)
-  } else {
-    val source = ImageDecoder.createSource(context.contentResolver, this)
-    ImageDecoder.decodeBitmap(source)
+  return try {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+      MediaStore.Images.Media.getBitmap(context.contentResolver, this)
+    } else {
+      val source = ImageDecoder.createSource(context.contentResolver, this)
+      ImageDecoder.decodeBitmap(source)
+    }
+  } catch (e: Exception) {
+    e.printStackTrace()
+    null
   }
 }
