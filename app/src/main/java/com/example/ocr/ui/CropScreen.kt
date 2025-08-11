@@ -336,15 +336,15 @@ private fun sliceRectLocal(
   val widthLocal = coords.size.width.toFloat()
   val heightLocal = coords.size.height.toFloat()
 
-  // 이 노드(Box)의 루트 기준 top을 가져와, 루트→로컬 보정
+  // Take the top of this node (Box) in root coordinates and adjust it to local coordinates
   val nodeTopInRoot = coords.boundsInRoot().top
 
-  // 루트 기준 타깃(top/bottom) → 로컬 기준으로 변환 + 뷰 경계 클램프
+  // Adjust the target bounds to local coordinates
   val topLocal = (targetBounds.top - nodeTopInRoot).coerceIn(0f, heightLocal)
   val bottomLocal = (targetBounds.bottom - nodeTopInRoot).coerceIn(0f, heightLocal)
   val targetH = (bottomLocal - topLocal).coerceAtLeast(0f)
 
-  // dp → px (Float). 한 엣지에서 사용할 수 있는 최대 높이 200dp 제한
+  // Convert Dp to pixels using the current density
   val leftPx = with(density) { leftDp.toPx() }
   val rightPx = with(density) { rightDp.toPx() }
   val maxHPx = with(density) { 200.dp.toPx() }
