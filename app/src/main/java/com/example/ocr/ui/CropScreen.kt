@@ -61,7 +61,7 @@ import com.example.ocr.utils.saveTempBitmapToCache
 @Composable
 fun CropScreen(
   capturedImageUri: Uri,
-  onCropComplete: (Uri) -> Unit = {}
+  onCropComplete: (Uri?) -> Unit = {}
 ) {
 
   Box(

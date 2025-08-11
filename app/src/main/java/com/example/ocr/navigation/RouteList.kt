@@ -14,7 +14,8 @@ data class TakenPictureRoute(
     get() = Uri.parse(Uri.decode(encodedUri))
 
   companion object {
-    fun create(uri: Uri): TakenPictureRoute {
+    fun create(uri: Uri?): TakenPictureRoute {
+      requireNotNull(uri) { "URI cannot be null" }
       return TakenPictureRoute(encodedUri = Uri.encode(uri.toString()))
     }
   }
