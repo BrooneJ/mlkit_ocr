@@ -62,7 +62,10 @@ class MainActivity : ComponentActivity() {
               onCropComplete = { croppedUri ->
                 navController.navigate(
                   TakenPictureRoute.create(croppedUri)
-                )
+                ) {
+                  popUpTo<TakenPictureRoute> { inclusive = true }
+                  launchSingleTop = true
+                }
               }
             )
           }
