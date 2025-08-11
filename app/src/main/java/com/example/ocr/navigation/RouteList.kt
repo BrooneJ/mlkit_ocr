@@ -14,8 +14,23 @@ data class TakenPictureRoute(
     get() = Uri.parse(Uri.decode(encodedUri))
 
   companion object {
-    fun create(uri: Uri): TakenPictureRoute {
+    fun create(uri: Uri?): TakenPictureRoute {
+      requireNotNull(uri) { "URI cannot be null" }
       return TakenPictureRoute(encodedUri = Uri.encode(uri.toString()))
+    }
+  }
+}
+
+@Serializable
+data class CropRoute(
+  val encodedUri: String,
+) {
+  val uri: Uri
+    get() = Uri.parse(Uri.decode(encodedUri))
+
+  companion object {
+    fun create(uri: Uri): CropRoute {
+      return CropRoute(encodedUri = Uri.encode(uri.toString()))
     }
   }
 }
