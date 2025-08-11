@@ -32,6 +32,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +58,8 @@ import com.example.ocr.cropkit.GridLinesType
 import com.example.ocr.cropkit.ImageCropper
 import com.example.ocr.cropkit.rememberCropController
 import com.example.ocr.utils.saveTempBitmapToCache
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CropScreen(
@@ -83,8 +86,10 @@ fun CropScreen(
     }
 
     val context = LocalContext.current
-    image = remember(capturedImageUri) {
-      capturedImageUri.toBitmap(context)
+    LaunchedEffect(capturedImageUri) {
+      withContext(Dispatchers.IO) {
+        image = capturedImageUri.toBitmap(context)
+      }
     }
 
     Scaffold(
