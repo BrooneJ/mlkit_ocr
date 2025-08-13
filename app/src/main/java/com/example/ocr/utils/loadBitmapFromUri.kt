@@ -18,10 +18,11 @@ suspend fun loadBitmapFromUri(
   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
     val src = ImageDecoder.createSource(context.contentResolver, uri)
     ImageDecoder.decodeBitmap(src) { decoder, info, _ ->
-      val (w, h) = info.size.width to info.size.height
-      val scale = max(1f, max(w, h) / maxSizePx.toFloat())
-      val targetWidth = (w / scale).toInt().coerceAtLeast(1)
-      val targetHeight = (h / scale).toInt().coerceAtLeast(1)
+      val (width, height) = info.size.width to info.size.height
+      // not allow under 1f
+      val scale = max(1f, max(width, height) / maxSizePx.toFloat())
+      val targetWidth = (width / scale).toInt().coerceAtLeast(1)
+      val targetHeight = (height / scale).toInt().coerceAtLeast(1)
       decoder.setTargetSize(targetWidth, targetHeight)
     }
   } else {
@@ -31,9 +32,9 @@ suspend fun loadBitmapFromUri(
     }
     val inSample = run {
       var sample = 1
-      val w = bounds.outWidth
-      val h = bounds.outHeight
-      while (w / sample > maxSizePx || h / sample > maxSizePx) sample *= 2
+      val width = bounds.outWidth
+      val height = bounds.outHeight
+      while (width / sample > maxSizePx || height / sample > maxSizePx) sample *= 2
       sample
     }
     val opts = BitmapFactory.Options().apply { inSampleSize = inSample }
