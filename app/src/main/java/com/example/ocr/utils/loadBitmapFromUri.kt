@@ -6,40 +6,52 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlin.math.ceil
 import kotlin.math.max
 
 suspend fun loadBitmapFromUri(
   context: Context,
   uri: Uri,
-  maxSizePx: Int = 2048
-): Bitmap = withContext(Dispatchers.IO) {
-  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-    val src = ImageDecoder.createSource(context.contentResolver, uri)
+  maxDecodeSizePx: Int = 2048
+): Bitmap? {
+  val cr = context.contentResolver
+
+  return if (Build.VERSION.SDK_INT >= 28) {
+    val src = ImageDecoder.createSource(cr, uri)
     ImageDecoder.decodeBitmap(src) { decoder, info, _ ->
-      val (width, height) = info.size.width to info.size.height
-      // not allow under 1f
-      val scale = max(1f, max(width, height) / maxSizePx.toFloat())
-      val targetWidth = (width / scale).toInt().coerceAtLeast(1)
-      val targetHeight = (height / scale).toInt().coerceAtLeast(1)
-      decoder.setTargetSize(targetWidth, targetHeight)
+      // ★ 하드웨어 비트맵 금지 + 가변 필요
+      decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+      decoder.isMutableRequired = true
+
+      // 다운샘플링(가로/세로 중 큰 변이 maxDecodeSizePx를 넘지 않도록)
+      val (w, h) = info.size.let { it.width to it.height }
+      val sample = max(1, ceil(max(w, h) / maxDecodeSizePx.toFloat()).toInt())
+      decoder.setTargetSampleSize(sample)
     }
   } else {
+    // API < 28: BitmapFactory로 소프트웨어/가변 디코드
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    context.contentResolver.openInputStream(uri)?.use {
-      BitmapFactory.decodeStream(it, null, bounds)
+    cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+    val inSample = calcInSampleSize(bounds.outWidth, bounds.outHeight, maxDecodeSizePx)
+
+    val opts = BitmapFactory.Options().apply {
+      inPreferredConfig = Bitmap.Config.ARGB_8888
+      inMutable = true
+      inSampleSize = inSample
     }
-    val inSample = run {
-      var sample = 1
-      val width = bounds.outWidth
-      val height = bounds.outHeight
-      while (width / sample > maxSizePx || height / sample > maxSizePx) sample *= 2
-      sample
-    }
-    val opts = BitmapFactory.Options().apply { inSampleSize = inSample }
-    context.contentResolver.openInputStream(uri)!!.use {
-      BitmapFactory.decodeStream(it, null, opts)!!
+    cr.openInputStream(uri)?.use { input ->
+      BitmapFactory.decodeStream(input, null, opts)!!
     }
   }
+}
+
+private fun calcInSampleSize(w: Int, h: Int, maxSize: Int): Int {
+  if (w <= 0 || h <= 0) return 1
+  var sample = 1
+  var cw = w
+  var ch = h
+  while (max(cw, ch) > maxSize) {
+    cw /= 2; ch /= 2; sample *= 2
+  }
+  return max(1, sample)
 }
