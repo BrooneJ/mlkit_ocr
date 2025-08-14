@@ -6,6 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,6 +20,7 @@ import com.example.ocr.navigation.TakenPictureRoute
 import com.example.ocr.screen.captured.CapturedScreen
 import com.example.ocr.screen.crop.CropScreen
 import com.example.ocr.screen.draw.DrawScreen
+import com.example.ocr.screen.draw.DrawViewModel
 import com.example.ocr.screen.main.MainScreen
 import com.example.ocr.ui.theme.OCRTheme
 
@@ -27,6 +31,9 @@ class MainActivity : ComponentActivity() {
     setContent {
       OCRTheme {
         val navController = rememberNavController()
+        val drawViewModel = viewModel<DrawViewModel>()
+        val state by drawViewModel.state.collectAsStateWithLifecycle()
+
         NavHost(
           navController = navController,
           startDestination = MainRoute,
@@ -82,6 +89,7 @@ class MainActivity : ComponentActivity() {
             val capturedImageUri = route.uri
             DrawScreen(
               capturedImageUri = capturedImageUri,
+              onAction = drawViewModel::onAction,
               onExported = { exportedUri ->
                 navController.navigate(
                   TakenPictureRoute.create(exportedUri)
@@ -89,7 +97,9 @@ class MainActivity : ComponentActivity() {
                   popUpTo<TakenPictureRoute> { inclusive = true }
                   launchSingleTop = true
                 }
-              }
+              },
+              paths = state.paths,
+              currentPath = state.currentPath
             )
           }
         }
