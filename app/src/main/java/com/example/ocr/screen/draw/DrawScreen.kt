@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -27,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -46,7 +48,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.example.ocr.utils.loadBitmapFromUri
 import com.example.ocr.utils.saveBitmapToCacheUri
@@ -87,7 +88,12 @@ fun DrawScreen(
 
   if (bitmap == null) {
     // Show loading or error state
-    Text("Loading image...", modifier = Modifier.padding(16.dp))
+    Box(
+      modifier = Modifier.fillMaxSize(),
+      contentAlignment = Alignment.Center
+    ) {
+      CircularProgressIndicator()
+    }
     return
   }
 
@@ -421,7 +427,7 @@ suspend fun renderDisplayComposite(
   }
 
   if (!cropToImageRect) return out
-  
+
   return Bitmap.createBitmap(out, dstLeft, dstTop, dstW, dstH)
 }
 
