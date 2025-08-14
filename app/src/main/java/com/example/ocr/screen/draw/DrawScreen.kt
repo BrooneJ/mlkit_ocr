@@ -1,4 +1,4 @@
-package com.example.ocr.screen
+package com.example.ocr.screen.draw
 
 import android.graphics.Bitmap
 import android.net.Uri

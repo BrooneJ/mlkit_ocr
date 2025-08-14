@@ -7,8 +7,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
 import androidx.compose.ui.graphics.asAndroidPath
-import com.example.ocr.screen.Stroke
-import com.example.ocr.screen.Tool
+import com.example.ocr.screen.draw.Stroke
+import com.example.ocr.screen.draw.Tool
 import java.io.File
 import java.io.FileOutputStream
 

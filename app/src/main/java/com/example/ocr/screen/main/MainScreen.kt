@@ -1,4 +1,4 @@
-package com.example.ocr.screen
+package com.example.ocr.screen.main
 
 import android.Manifest
 import android.content.pm.PackageManager

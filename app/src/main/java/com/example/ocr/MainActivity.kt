@@ -14,10 +14,10 @@ import com.example.ocr.navigation.CropRoute
 import com.example.ocr.navigation.DrawRoute
 import com.example.ocr.navigation.MainRoute
 import com.example.ocr.navigation.TakenPictureRoute
-import com.example.ocr.screen.CapturedScreen
-import com.example.ocr.screen.CropScreen
-import com.example.ocr.screen.DrawScreen
-import com.example.ocr.screen.MainScreen
+import com.example.ocr.screen.captured.CapturedScreen
+import com.example.ocr.screen.crop.CropScreen
+import com.example.ocr.screen.draw.DrawScreen
+import com.example.ocr.screen.main.MainScreen
 import com.example.ocr.ui.theme.OCRTheme
 
 class MainActivity : ComponentActivity() {
