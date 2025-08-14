@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.ocr.ui
+package com.example.ocr.screen
 
 import android.graphics.Bitmap
 import android.net.Uri

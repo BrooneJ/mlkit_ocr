@@ -1,4 +1,4 @@
-package com.example.ocr.ui
+package com.example.ocr.screen
 
 import android.content.res.Configuration
 import android.net.Uri
