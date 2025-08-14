@@ -11,10 +11,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.CropRoute
+import com.example.ocr.navigation.DrawRoute
 import com.example.ocr.navigation.MainRoute
 import com.example.ocr.navigation.TakenPictureRoute
 import com.example.ocr.ui.CapturedScreen
 import com.example.ocr.ui.CropScreen
+import com.example.ocr.ui.DrawScreen
 import com.example.ocr.ui.MainScreen
 import com.example.ocr.ui.theme.OCRTheme
 
@@ -50,6 +52,11 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(
                   CropRoute.create(capturedImageUri)
                 )
+              },
+              onDraw = {
+                navController.navigate(
+                  DrawRoute.create(capturedImageUri)
+                )
               }
             )
           }
@@ -62,6 +69,22 @@ class MainActivity : ComponentActivity() {
               onCropComplete = { croppedUri ->
                 navController.navigate(
                   TakenPictureRoute.create(croppedUri)
+                ) {
+                  popUpTo<TakenPictureRoute> { inclusive = true }
+                  launchSingleTop = true
+                }
+              }
+            )
+          }
+
+          composable<DrawRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<DrawRoute>()
+            val capturedImageUri = route.uri
+            DrawScreen(
+              capturedImageUri = capturedImageUri,
+              onExported = { exportedUri ->
+                navController.navigate(
+                  TakenPictureRoute.create(exportedUri)
                 ) {
                   popUpTo<TakenPictureRoute> { inclusive = true }
                   launchSingleTop = true

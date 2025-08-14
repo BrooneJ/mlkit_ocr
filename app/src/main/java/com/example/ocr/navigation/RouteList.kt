@@ -34,3 +34,17 @@ data class CropRoute(
     }
   }
 }
+
+@Serializable
+data class DrawRoute(
+  val encodedUri: String,
+) {
+  val uri: Uri
+    get() = Uri.parse(Uri.decode(encodedUri))
+
+  companion object {
+    fun create(uri: Uri): DrawRoute {
+      return DrawRoute(encodedUri = Uri.encode(uri.toString()))
+    }
+  }
+}
