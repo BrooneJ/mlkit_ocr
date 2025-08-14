@@ -99,7 +99,8 @@ class MainActivity : ComponentActivity() {
                 }
               },
               paths = state.paths,
-              currentPath = state.currentPath
+              currentPath = state.currentPath,
+              thickness = state.thickness
             )
           }
         }

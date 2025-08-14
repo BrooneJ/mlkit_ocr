@@ -9,4 +9,5 @@ sealed class DrawingAction {
   data object OnPathEnd : DrawingAction()
   data class OnSelectColor(val color: Color) : DrawingAction()
   data object OnClearCanvas : DrawingAction()
+  data class OnSelectThickness(val thickness: Float) : DrawingAction()
 }

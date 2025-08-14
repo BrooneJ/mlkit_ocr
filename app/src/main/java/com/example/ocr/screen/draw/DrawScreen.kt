@@ -5,10 +5,19 @@ package com.example.ocr.screen.draw
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ButtonDefaults
@@ -30,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -48,6 +58,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.example.ocr.utils.loadBitmapFromUri
 import com.example.ocr.utils.saveBitmapToCacheUri
@@ -67,6 +78,7 @@ data class Stroke(
 fun DrawScreen(
   paths: List<PathData>,
   currentPath: PathData?,
+  thickness: Float,
   onAction: (DrawingAction) -> Unit,
   capturedImageUri: Uri,
   maxDecodeSizePx: Int = 2048,
@@ -131,14 +143,17 @@ fun DrawScreen(
         }
       )
     }) {
-    Surface(modifier = Modifier.padding(it)) {
-      Box(
+    Surface(
+      modifier = Modifier.padding(it)
+    ) {
+      Column(
         Modifier
           .fillMaxSize()
       ) {
         Canvas(
           modifier = Modifier
-            .matchParentSize()
+            .weight(1f)
+            .fillMaxSize()
             .onSizeChanged { size ->
               canvasSize = size
             }
@@ -187,12 +202,33 @@ fun DrawScreen(
             drawPath(
               path = pathData.path,
               color = pathData.color,
+              thickness = pathData.thickness
             )
           }
           currentPath?.let {
             drawPath(
               path = it.path,
-              color = it.color
+              color = it.color,
+              thickness = it.thickness
+            )
+          }
+        }
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+          horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+          val thicks = listOf(10f, 20f, 50f)
+          thicks.forEach { thick ->
+            val isSelected = thickness == thick
+            Box(
+              modifier = Modifier
+                .size(36.dp) // UI 용 고정 크기 권장
+                .clip(CircleShape)
+                .background(if (isSelected) Color(0xFF4CAF50) else Color(0xFFE0E0E0))
+                .border(1.dp, Color.DarkGray, CircleShape)
+                .clickable { onAction(DrawingAction.OnSelectThickness(thick)) }
             )
           }
         }
@@ -422,8 +458,8 @@ suspend fun renderDisplayComposite(
       dstSize = IntSize(dstW, dstH)
     )
 
-    paths.forEach { drawPath(it.path, it.color) }
-    currentPath?.let { drawPath(it.path, it.color) }
+    paths.forEach { drawPath(it.path, it.color, it.thickness) }
+    currentPath?.let { drawPath(it.path, it.color, it.thickness) }
   }
 
   if (!cropToImageRect) return out
