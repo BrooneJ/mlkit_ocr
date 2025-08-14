@@ -216,18 +216,19 @@ fun DrawScreen(
         Row(
           modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
-          horizontalArrangement = Arrangement.SpaceEvenly
+            .padding(bottom = 24.dp),
+          horizontalArrangement = Arrangement.SpaceEvenly,
+          verticalAlignment = Alignment.CenterVertically
         ) {
-          val thicks = listOf(10f, 20f, 50f)
+          val thicks = listOf(30f, 50f, 70f)
           thicks.forEach { thick ->
             val isSelected = thickness == thick
             Box(
               modifier = Modifier
-                .size(36.dp) // UI 용 고정 크기 권장
+                .size((thick / 2).dp) // UI 용 고정 크기 권장
                 .clip(CircleShape)
-                .background(if (isSelected) Color(0xFF4CAF50) else Color(0xFFE0E0E0))
-                .border(1.dp, Color.DarkGray, CircleShape)
+                .background(Color.White)
+                .border(if (isSelected) 2.dp else 0.dp, Color.DarkGray, CircleShape)
                 .clickable { onAction(DrawingAction.OnSelectThickness(thick)) }
             )
           }

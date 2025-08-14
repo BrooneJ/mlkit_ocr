@@ -4,8 +4,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 
 data class DrawingState(
-  val selectedColor: Color = Color.Black,
-  val thickness: Float = 20f,
+  val selectedColor: Color = Color.White,
+  val thickness: Float = 50f,
   val currentPath: PathData? = null,
   val paths: List<PathData> = emptyList()
 )
