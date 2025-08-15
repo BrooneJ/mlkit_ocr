@@ -98,6 +98,9 @@ class MainActivity : ComponentActivity() {
                   launchSingleTop = true
                 }
               },
+              onBack = {
+                navController.popBackStack()
+              },
               paths = state.paths,
               currentPath = state.currentPath,
               thickness = state.thickness

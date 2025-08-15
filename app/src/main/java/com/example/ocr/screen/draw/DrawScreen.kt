@@ -4,6 +4,7 @@ package com.example.ocr.screen.draw
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -60,6 +61,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
+import com.example.ocr.screen.draw.components.CustomAlertDialog
 import com.example.ocr.utils.loadBitmapFromUri
 import com.example.ocr.utils.saveBitmapToCacheUri
 import kotlinx.coroutines.launch
@@ -83,7 +85,28 @@ fun DrawScreen(
   capturedImageUri: Uri,
   maxDecodeSizePx: Int = 2048,
   onExported: (Uri) -> Unit,
+  onBack: () -> Unit
 ) {
+  val openAlertDialog = remember { mutableStateOf(false) }
+  BackHandler(enabled = !openAlertDialog.value) {
+    openAlertDialog.value = true
+  }
+
+  if (openAlertDialog.value) {
+    CustomAlertDialog(
+      onDismissRequest = {
+        openAlertDialog.value = false
+      },
+      onConfirm = {
+        openAlertDialog.value = false
+        onBack()
+        onAction(DrawingAction.OnClearCanvas)
+      },
+      dialogTitle = "Discard Changes?",
+      dialogMessage = "Are you sure you want to discard your changes and go back?"
+    )
+  }
+
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
   var bitmap by remember { mutableStateOf<Bitmap?>(null) }
