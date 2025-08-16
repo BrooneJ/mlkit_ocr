@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -119,6 +120,14 @@ fun CropScreen(
       topBar = {
         TopAppBar(
           title = { Text("Crop") },
+          navigationIcon = {
+            IconButton(onClick = { openBackNavDialog.value = true }) {
+              Icon(
+                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                contentDescription = "Back"
+              )
+            }
+          },
           actions = {
             IconButton(
               onClick = {

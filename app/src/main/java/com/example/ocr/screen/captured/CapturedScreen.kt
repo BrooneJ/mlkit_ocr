@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +40,8 @@ import com.example.ocr.ui.theme.OCRTheme
 fun CapturedScreen(
   capturedImageUri: Uri,
   onCrop: (Uri) -> Unit = {},
-  onDraw: (Uri) -> Unit = {}
+  onDraw: (Uri) -> Unit = {},
+  onBack: () -> Unit,
 ) {
   Box(
     modifier = Modifier
@@ -58,7 +61,15 @@ fun CapturedScreen(
         TopAppBar(
           title = {
             Text(text = "Preview Captured Image")
-          }
+          },
+          navigationIcon = {
+            IconButton(onClick = { onBack() }) {
+              Icon(
+                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                contentDescription = "Back"
+              )
+            }
+          },
         )
       }
     ) { padding ->
@@ -125,6 +136,6 @@ fun CapturedScreen(
 @Composable
 private fun CapturedScreenPreview() {
   OCRTheme {
-    CapturedScreen(capturedImageUri = Uri.EMPTY)
+    CapturedScreen(capturedImageUri = Uri.EMPTY, onBack = {})
   }
 }
