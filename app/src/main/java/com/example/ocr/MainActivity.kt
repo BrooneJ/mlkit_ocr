@@ -64,6 +64,9 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(
                   DrawRoute.create(capturedImageUri)
                 )
+              },
+              onBack = {
+                navController.popBackStack()
               }
             )
           }
