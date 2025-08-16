@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.example.ocr.screen.draw.components.CustomAlertDialog
 import com.example.ocr.utils.loadBitmapFromUri
-import com.example.ocr.utils.saveBitmapToCacheUri
+import com.example.ocr.utils.saveTempBitmapToCache
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -151,12 +151,14 @@ fun DrawScreen(
                   cropToImageRect = true
                 )
 
-                val uri = saveBitmapToCacheUri(
+                val uri = saveTempBitmapToCache(
                   context = context,
                   bitmap = outBmp,
-                  prefix = "redacted_",
-                  suffix = ".png",
                 )
+                if (uri == null) {
+                  // Handle error saving bitmap
+                  return@launch
+                }
                 onExported(uri)
                 onAction(DrawingAction.OnClearCanvas)
               }
