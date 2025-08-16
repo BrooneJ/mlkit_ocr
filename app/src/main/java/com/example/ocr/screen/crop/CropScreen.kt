@@ -192,6 +192,7 @@ fun CropScreen(
             SingleChoiceSegmentedButtonRow(
               modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 24.dp),
             ) {
 
               SegmentedButton(
