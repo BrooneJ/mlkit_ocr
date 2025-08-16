@@ -90,7 +90,7 @@ fun CameraBox(onTextRecognized: (String) -> Unit, onCaptured: (Uri) -> Unit) {
       .fillMaxWidth()
       .border(2.dp, Color.Gray, RoundedCornerShape(16.dp))
       .clip(RoundedCornerShape(16.dp))
-      .aspectRatio(1f)
+      .aspectRatio(9f / 16f)
       .background(Color.Black)
   ) {
     AndroidView(
