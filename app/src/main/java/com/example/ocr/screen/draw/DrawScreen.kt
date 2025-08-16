@@ -242,7 +242,7 @@ fun DrawScreen(
             val isSelected = thickness == thick
             Box(
               modifier = Modifier
-                .size((thick / 2).dp) // UI 용 고정 크기 권장
+                .size((thick / 2).dp) // Recommended to use fixed size for UI
                 .clip(CircleShape)
                 .background(Color.White)
                 .border(if (isSelected) 2.dp else 0.dp, Color.DarkGray, CircleShape)
@@ -298,7 +298,7 @@ fun renderDisplayComposite(
   currentPath: PathData?,
   outWidth: Int,
   outHeight: Int,
-  cropToImageRect: Boolean = false   // ★ 추가
+  cropToImageRect: Boolean = false   // Added
 ): Bitmap {
   val out = Bitmap.createBitmap(outWidth, outHeight, Bitmap.Config.ARGB_8888)
   val androidCanvas = android.graphics.Canvas(out)
