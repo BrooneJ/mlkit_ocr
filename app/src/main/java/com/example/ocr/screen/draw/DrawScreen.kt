@@ -59,7 +59,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import com.example.ocr.screen.draw.components.CustomAlertDialog
+import com.example.ocr.common.components.BackNavDialog
 import com.example.ocr.utils.loadBitmapFromUri
 import com.example.ocr.utils.saveTempBitmapToCache
 import kotlinx.coroutines.CancellationException
@@ -77,18 +77,18 @@ fun DrawScreen(
   onExported: (Uri) -> Unit,
   onBack: () -> Unit
 ) {
-  val openAlertDialog = remember { mutableStateOf(false) }
-  BackHandler(enabled = !openAlertDialog.value) {
-    openAlertDialog.value = true
+  val openBackNavDialog = remember { mutableStateOf(false) }
+  BackHandler(enabled = !openBackNavDialog.value) {
+    openBackNavDialog.value = true
   }
 
-  if (openAlertDialog.value) {
-    CustomAlertDialog(
+  if (openBackNavDialog.value) {
+    BackNavDialog(
       onDismissRequest = {
-        openAlertDialog.value = false
+        openBackNavDialog.value = false
       },
       onConfirm = {
-        openAlertDialog.value = false
+        openBackNavDialog.value = false
         onBack()
         onAction(DrawingAction.OnClearCanvas)
       },

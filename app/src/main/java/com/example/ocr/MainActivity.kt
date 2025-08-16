@@ -80,6 +80,9 @@ class MainActivity : ComponentActivity() {
                   popUpTo<TakenPictureRoute> { inclusive = true }
                   launchSingleTop = true
                 }
+              },
+              onBack = {
+                navController.popBackStack()
               }
             )
           }

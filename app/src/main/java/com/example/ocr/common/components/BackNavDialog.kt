@@ -1,4 +1,4 @@
-package com.example.ocr.screen.draw.components
+package com.example.ocr.common.components
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 
 @Composable
-fun CustomAlertDialog(
+fun BackNavDialog(
   onDismissRequest: () -> Unit,
   onConfirm: () -> Unit,
   dialogTitle: String,
