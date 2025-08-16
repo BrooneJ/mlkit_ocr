@@ -19,17 +19,17 @@ suspend fun loadBitmapFromUri(
   return if (Build.VERSION.SDK_INT >= 28) {
     val src = ImageDecoder.createSource(cr, uri)
     ImageDecoder.decodeBitmap(src) { decoder, info, _ ->
-      // ★ 하드웨어 비트맵 금지 + 가변 필요
+      // ★ set allocator to ALLOCATOR_SOFTWARE for software decoding
       decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
       decoder.isMutableRequired = true
 
-      // 다운샘플링(가로/세로 중 큰 변이 maxDecodeSizePx를 넘지 않도록)
+      // Down sampling (ensuring the larger dimension does not exceed maxDecodeSizePx)
       val (w, h) = info.size.let { it.width to it.height }
       val sample = max(1, ceil(max(w, h) / maxDecodeSizePx.toFloat()).toInt())
       decoder.setTargetSampleSize(sample)
     }
   } else {
-    // API < 28: BitmapFactory로 소프트웨어/가변 디코드
+    // API < 28: use BitmapFactory with inSampleSize
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
     val inSample = calcInSampleSize(bounds.outWidth, bounds.outHeight, maxDecodeSizePx)
