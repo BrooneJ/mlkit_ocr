@@ -68,7 +68,7 @@ fun CropScreen(
   onBack: () -> Unit
 ) {
   val openBackNavDialog = remember { mutableStateOf(false) }
-  BackHandler {
+  BackHandler(enabled = !openBackNavDialog.value) {
     if (!openBackNavDialog.value) {
       openBackNavDialog.value = true
     }
