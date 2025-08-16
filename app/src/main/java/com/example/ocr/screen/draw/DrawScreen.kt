@@ -136,7 +136,7 @@ fun DrawScreen(
         navigationIcon = {
           IconButton(onClick = { openBackNavDialog.value = true }) {
             Icon(
-              imageVector = Icons.AutoMirrored.Default.ArrowBack,
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
               contentDescription = "Back"
             )
           }
