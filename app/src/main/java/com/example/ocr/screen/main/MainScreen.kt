@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.example.ocr.CameraBox
+import com.example.ocr.screen.main.components.CameraBox
 
 @Composable
 fun MainScreen(onCaptured: (Uri) -> Unit = {}) {

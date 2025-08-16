@@ -1,4 +1,4 @@
-package com.example.ocr
+package com.example.ocr.screen.main.components
 
 import android.net.Uri
 import android.util.Log
@@ -34,6 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.ocr.TextRecognitionHelper
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.Executors
