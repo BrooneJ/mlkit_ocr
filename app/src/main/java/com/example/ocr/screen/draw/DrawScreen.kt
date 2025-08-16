@@ -62,6 +62,7 @@ import androidx.compose.ui.util.fastForEach
 import com.example.ocr.screen.draw.components.CustomAlertDialog
 import com.example.ocr.utils.loadBitmapFromUri
 import com.example.ocr.utils.saveBitmapToCacheUri
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -113,6 +114,8 @@ fun DrawScreen(
   LaunchedEffect(capturedImageUri) {
     try {
       bitmap = loadBitmapFromUri(context, capturedImageUri, maxDecodeSizePx)
+    } catch (cancel: CancellationException) {
+      throw cancel
     } catch (t: Throwable) {
       // Handle error loading bitmap
       t.printStackTrace()
