@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -134,6 +137,7 @@ fun CropScreen(
         )
       },
     ) { innerPadding ->
+      val safeGestureInsets = WindowInsets.safeGestures.asPaddingValues()
 
       Surface(
         modifier = Modifier
@@ -172,6 +176,7 @@ fun CropScreen(
             ) {
               ImageCropper(
                 modifier = Modifier
+                  .padding(safeGestureInsets)
                   .fillMaxWidth()
                   .weight(1f)
                   // 2) This is the bounds of the cropper in the root layout
