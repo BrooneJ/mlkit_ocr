@@ -65,7 +65,7 @@ private suspend fun decodeLegacyBitmap(
     inSampleSize = inSample
   }
   cr.openInputStream(uri)?.use { input ->
-    BitmapFactory.decodeStream(input, null, opts)!!
+    BitmapFactory.decodeStream(input, null, opts)
   }
 }
 
