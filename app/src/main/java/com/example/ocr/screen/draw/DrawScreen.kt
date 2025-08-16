@@ -14,9 +14,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -163,12 +166,15 @@ fun DrawScreen(
     Surface(
       modifier = Modifier.padding(it)
     ) {
+      val safeGestureInsets = WindowInsets.safeGestures.asPaddingValues()
+
       Column(
         Modifier
           .fillMaxSize()
       ) {
         Canvas(
           modifier = Modifier
+            .padding(safeGestureInsets)
             .weight(1f)
             .fillMaxSize()
             .onSizeChanged { size ->
