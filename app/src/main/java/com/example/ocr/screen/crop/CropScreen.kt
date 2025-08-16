@@ -77,7 +77,10 @@ fun CropScreen(
   if (openBackNavDialog.value) {
     BackNavDialog(
       onDismissRequest = { openBackNavDialog.value = false },
-      onConfirm = { onBack() },
+      onConfirm = {
+        openBackNavDialog.value = false
+        onBack()
+      },
       dialogTitle = "Discard Changes",
       dialogMessage = "Are you sure you want to discard the changes and go back?"
     )
