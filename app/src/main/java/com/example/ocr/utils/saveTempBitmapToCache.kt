@@ -13,7 +13,7 @@ import java.io.IOException
  */
 fun saveTempBitmapToCache(context: Context, bitmap: Bitmap): Uri? {
   return try {
-    val temp = File.createTempFile("crop_", ".jpg", context.cacheDir)
+    val temp = File.createTempFile("temp_", ".jpg", context.cacheDir)
     FileOutputStream(temp).use { out ->
       bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
     }

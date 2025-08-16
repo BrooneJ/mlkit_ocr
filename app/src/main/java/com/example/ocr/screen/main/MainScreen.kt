@@ -1,5 +1,6 @@
-package com.example.ocr.ui
+package com.example.ocr.screen.main
 
+import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.example.ocr.CameraBox
+import com.example.ocr.screen.main.components.CameraBox
 
 @Composable
 fun MainScreen(onCaptured: (Uri) -> Unit = {}) {
@@ -53,12 +54,12 @@ fun MainScreen(onCaptured: (Uri) -> Unit = {}) {
   LaunchedEffect(Unit) {
     val hasPermission = ContextCompat.checkSelfPermission(
       context,
-      android.Manifest.permission.CAMERA
+      Manifest.permission.CAMERA
     ) == PackageManager.PERMISSION_GRANTED
     if (hasPermission) {
       cameraPermissionState.value = true
     } else {
-      permissionLauncher.launch(android.Manifest.permission.CAMERA)
+      permissionLauncher.launch(Manifest.permission.CAMERA)
     }
   }
 

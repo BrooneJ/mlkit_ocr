@@ -1,4 +1,4 @@
-package com.example.ocr.ui
+package com.example.ocr.screen.captured
 
 import android.content.res.Configuration
 import android.net.Uri
@@ -34,7 +34,8 @@ import com.example.ocr.ui.theme.OCRTheme
 @Composable
 fun CapturedScreen(
   capturedImageUri: Uri,
-  onCrop: (Uri) -> Unit = {}
+  onCrop: (Uri) -> Unit = {},
+  onDraw: (Uri) -> Unit = {}
 ) {
   Box(
     modifier = Modifier
@@ -97,7 +98,9 @@ fun CapturedScreen(
             }
 
             IconButton(
-              onClick = {}
+              onClick = {
+                onDraw(capturedImageUri)
+              }
             ) {
               Icon(
                 painter = painterResource(id = R.drawable.pencil),

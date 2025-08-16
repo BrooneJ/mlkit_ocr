@@ -1,13 +1,10 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.ocr.ui
+package com.example.ocr.screen.crop
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,6 +54,7 @@ import com.example.ocr.cropkit.CropShape
 import com.example.ocr.cropkit.GridLinesType
 import com.example.ocr.cropkit.ImageCropper
 import com.example.ocr.cropkit.rememberCropController
+import com.example.ocr.utils.loadBitmapFromUri
 import com.example.ocr.utils.saveTempBitmapToCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -88,7 +86,7 @@ fun CropScreen(
     val context = LocalContext.current
     LaunchedEffect(capturedImageUri) {
       withContext(Dispatchers.IO) {
-        image = capturedImageUri.toBitmap(context)
+        image = loadBitmapFromUri(context, capturedImageUri)
       }
     }
 
@@ -377,21 +375,5 @@ private fun sliceRectLocal(
       right = widthLocal,
       bottom = (yTop + sliceH).coerceAtMost(heightLocal)
     )
-  }
-}
-
-@Suppress("Deprecation")
-private fun Uri.toBitmap(context: Context): Bitmap? {
-
-  return try {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-      MediaStore.Images.Media.getBitmap(context.contentResolver, this)
-    } else {
-      val source = ImageDecoder.createSource(context.contentResolver, this)
-      ImageDecoder.decodeBitmap(source)
-    }
-  } catch (e: Exception) {
-    e.printStackTrace()
-    null
   }
 }

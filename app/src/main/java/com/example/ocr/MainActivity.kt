@@ -6,16 +6,22 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.CropRoute
+import com.example.ocr.navigation.DrawRoute
 import com.example.ocr.navigation.MainRoute
 import com.example.ocr.navigation.TakenPictureRoute
-import com.example.ocr.ui.CapturedScreen
-import com.example.ocr.ui.CropScreen
-import com.example.ocr.ui.MainScreen
+import com.example.ocr.screen.captured.CapturedScreen
+import com.example.ocr.screen.crop.CropScreen
+import com.example.ocr.screen.draw.DrawScreen
+import com.example.ocr.screen.draw.DrawViewModel
+import com.example.ocr.screen.main.MainScreen
 import com.example.ocr.ui.theme.OCRTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,6 +31,9 @@ class MainActivity : ComponentActivity() {
     setContent {
       OCRTheme {
         val navController = rememberNavController()
+        val drawViewModel = viewModel<DrawViewModel>()
+        val state by drawViewModel.state.collectAsStateWithLifecycle()
+
         NavHost(
           navController = navController,
           startDestination = MainRoute,
@@ -50,6 +59,11 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(
                   CropRoute.create(capturedImageUri)
                 )
+              },
+              onDraw = {
+                navController.navigate(
+                  DrawRoute.create(capturedImageUri)
+                )
               }
             )
           }
@@ -67,6 +81,29 @@ class MainActivity : ComponentActivity() {
                   launchSingleTop = true
                 }
               }
+            )
+          }
+
+          composable<DrawRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<DrawRoute>()
+            val capturedImageUri = route.uri
+            DrawScreen(
+              capturedImageUri = capturedImageUri,
+              onAction = drawViewModel::onAction,
+              onExported = { exportedUri ->
+                navController.navigate(
+                  TakenPictureRoute.create(exportedUri)
+                ) {
+                  popUpTo<TakenPictureRoute> { inclusive = true }
+                  launchSingleTop = true
+                }
+              },
+              onBack = {
+                navController.popBackStack()
+              },
+              paths = state.paths,
+              currentPath = state.currentPath,
+              thickness = state.thickness
             )
           }
         }
