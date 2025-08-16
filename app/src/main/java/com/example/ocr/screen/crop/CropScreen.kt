@@ -5,6 +5,7 @@ package com.example.ocr.screen.crop
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ocr.R
+import com.example.ocr.common.components.BackNavDialog
 import com.example.ocr.cropkit.CropDefaults
 import com.example.ocr.cropkit.CropRatio
 import com.example.ocr.cropkit.CropShape
@@ -62,8 +64,24 @@ import kotlinx.coroutines.withContext
 @Composable
 fun CropScreen(
   capturedImageUri: Uri,
-  onCropComplete: (Uri?) -> Unit = {}
+  onCropComplete: (Uri?) -> Unit = {},
+  onBack: () -> Unit
 ) {
+  val openBackNavDialog = remember { mutableStateOf(false) }
+  BackHandler {
+    if (!openBackNavDialog.value) {
+      openBackNavDialog.value = true
+    }
+  }
+
+  if (openBackNavDialog.value) {
+    BackNavDialog(
+      onDismissRequest = { openBackNavDialog.value = false },
+      onConfirm = { onBack() },
+      dialogTitle = "Discard Changes",
+      dialogMessage = "Are you sure you want to discard the changes and go back?"
+    )
+  }
 
   Box(
     modifier = Modifier
