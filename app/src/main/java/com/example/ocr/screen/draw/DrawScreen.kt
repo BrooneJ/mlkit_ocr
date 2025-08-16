@@ -77,18 +77,18 @@ fun DrawScreen(
   onExported: (Uri) -> Unit,
   onBack: () -> Unit
 ) {
-  val openAlertDialog = remember { mutableStateOf(false) }
-  BackHandler(enabled = !openAlertDialog.value) {
-    openAlertDialog.value = true
+  val openBackNavDialog = remember { mutableStateOf(false) }
+  BackHandler(enabled = !openBackNavDialog.value) {
+    openBackNavDialog.value = true
   }
 
-  if (openAlertDialog.value) {
+  if (openBackNavDialog.value) {
     BackNavDialog(
       onDismissRequest = {
-        openAlertDialog.value = false
+        openBackNavDialog.value = false
       },
       onConfirm = {
-        openAlertDialog.value = false
+        openBackNavDialog.value = false
         onBack()
         onAction(DrawingAction.OnClearCanvas)
       },
