@@ -7,11 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-val allColors = listOf(
-  Color.White,
-  Color.Black
-)
-
 class DrawViewModel : ViewModel() {
 
   private val _state = MutableStateFlow(DrawingState())
