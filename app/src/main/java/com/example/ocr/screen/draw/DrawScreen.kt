@@ -66,15 +66,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-enum class Tool { Mosaic, White, Eraser }
-
-data class Stroke(
-  val tool: Tool,
-  val path: Path,
-  val width: Float,
-  val alpha: Float = 1f,
-)
-
 @Composable
 fun DrawScreen(
   paths: List<PathData>,
