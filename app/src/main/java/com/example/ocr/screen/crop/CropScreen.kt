@@ -55,7 +55,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ocr.R
 import com.example.ocr.common.components.BackNavDialog
 import com.example.ocr.cropkit.CropDefaults
-import com.example.ocr.cropkit.CropRatio
 import com.example.ocr.cropkit.CropShape
 import com.example.ocr.cropkit.GridLinesType
 import com.example.ocr.cropkit.ImageCropper
@@ -209,7 +208,7 @@ fun CropScreen(
                 onClick = { cropShape = CropShape.FreeForm },
                 shape = SegmentedButtonDefaults.itemShape(
                   index = 0,
-                  count = 4
+                  count = 2
                 )
               ) {
                 Text("Free-Form")
@@ -220,38 +219,10 @@ fun CropScreen(
                 onClick = { cropShape = CropShape.Original },
                 shape = SegmentedButtonDefaults.itemShape(
                   index = 1,
-                  count = 4
+                  count = 2
                 )
               ) {
                 Text("Original")
-              }
-
-              SegmentedButton(
-                selected = cropShape is CropShape.AspectRatio && gridLinesType == GridLinesType.CROSSHAIR,
-                onClick = {
-                  cropShape = CropShape.AspectRatio(CropRatio.SQUARE)
-                  gridLinesType = GridLinesType.CROSSHAIR
-                },
-                shape = SegmentedButtonDefaults.itemShape(
-                  index = 2,
-                  count = 4
-                )
-              ) {
-                Text("Square")
-              }
-
-              SegmentedButton(
-                selected = cropShape is CropShape.AspectRatio && gridLinesType == GridLinesType.GRID_AND_CIRCLE,
-                onClick = {
-                  cropShape = CropShape.AspectRatio(CropRatio.SQUARE)
-                  gridLinesType = GridLinesType.GRID_AND_CIRCLE
-                },
-                shape = SegmentedButtonDefaults.itemShape(
-                  index = 3,
-                  count = 4
-                )
-              ) {
-                Text("Circle")
               }
             }
 
