@@ -8,6 +8,6 @@ data class CropUiState(
   val sourceUri: Uri? = null,
   val isLoading: Boolean = false,
   val error: Throwable? = null,
-  val cropShape: CropShape = CropShape.FreeForm,
-  val gridLinesType: GridLinesType = GridLinesType.GRID,
+  var cropShape: CropShape = CropShape.FreeForm,
+  var gridLinesType: GridLinesType = GridLinesType.GRID,
 )
