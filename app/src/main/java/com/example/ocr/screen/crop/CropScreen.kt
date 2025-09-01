@@ -2,7 +2,6 @@
 
 package com.example.ocr.screen.crop
 
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -52,22 +51,20 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ocr.R
 import com.example.ocr.common.components.BackNavDialog
 import com.example.ocr.cropkit.CropDefaults
 import com.example.ocr.cropkit.CropShape
-import com.example.ocr.cropkit.GridLinesType
 import com.example.ocr.cropkit.ImageCropper
 import com.example.ocr.cropkit.rememberCropController
-import com.example.ocr.utils.loadBitmapFromUri
 import com.example.ocr.utils.saveTempBitmapToCache
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
 fun CropScreen(
   capturedImageUri: Uri,
   onCropComplete: (Uri?) -> Unit = {},
+  viewModel: CropViewModel = viewModel(),
   onBack: () -> Unit
 ) {
   val openBackNavDialog = remember { mutableStateOf(false) }
@@ -93,25 +90,23 @@ fun CropScreen(
     modifier = Modifier
       .fillMaxSize()
   ) {
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val image = viewModel.decodedBitmap
 
-    var image: Bitmap? by remember { mutableStateOf(null) }
-    var cropShape: CropShape by remember { mutableStateOf(CropShape.FreeForm) }
-    var gridLinesType by remember { mutableStateOf(GridLinesType.GRID) }
     val cropController = image?.let {
       rememberCropController(
         bitmap = it,
         cropOptions = CropDefaults.cropOptions(
-          cropShape = cropShape,
-          gridLinesType = gridLinesType
+          cropShape = uiState.cropShape,
+          gridLinesType = uiState.gridLinesType
         )
       )
     }
 
     val context = LocalContext.current
+
     LaunchedEffect(capturedImageUri) {
-      withContext(Dispatchers.IO) {
-        image = loadBitmapFromUri(context, capturedImageUri)
-      }
+      viewModel.setSource(context, capturedImageUri)
     }
 
     Scaffold(
@@ -204,8 +199,8 @@ fun CropScreen(
             ) {
 
               SegmentedButton(
-                selected = cropShape == CropShape.FreeForm,
-                onClick = { cropShape = CropShape.FreeForm },
+                selected = uiState.cropShape == CropShape.FreeForm,
+                onClick = { viewModel.setCropShape(CropShape.FreeForm) },
                 shape = SegmentedButtonDefaults.itemShape(
                   index = 0,
                   count = 2
@@ -215,8 +210,8 @@ fun CropScreen(
               }
 
               SegmentedButton(
-                selected = cropShape == CropShape.Original,
-                onClick = { cropShape = CropShape.Original },
+                selected = uiState.cropShape == CropShape.Original,
+                onClick = { viewModel.setCropShape(CropShape.Original) },
                 shape = SegmentedButtonDefaults.itemShape(
                   index = 1,
                   count = 2

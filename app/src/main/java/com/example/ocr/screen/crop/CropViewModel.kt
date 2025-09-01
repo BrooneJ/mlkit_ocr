@@ -6,7 +6,6 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ocr.cropkit.CropShape
-import com.example.ocr.cropkit.GridLinesType
 import com.example.ocr.utils.loadBitmapFromUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +19,8 @@ class CropViewModel() : ViewModel() {
   private val _state = MutableStateFlow(CropUiState())
   val state: StateFlow<CropUiState> = _state.asStateFlow()
 
-  private var decodedBitmap: Bitmap? = null
+  var decodedBitmap: Bitmap? = null
+    private set
 
   fun setSource(context: Context, uri: Uri) {
     if (_state.value.sourceUri == uri) return
@@ -38,5 +38,4 @@ class CropViewModel() : ViewModel() {
   }
 
   fun setCropShape(shape: CropShape) = _state.update { it.copy(cropShape = shape) }
-  fun setGridLinesType(type: GridLinesType) = _state.update { it.copy(gridLinesType = type) }
 }
