@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class CropViewModel() : ViewModel() {
+class CropViewModel : ViewModel() {
 
   private val _state = MutableStateFlow(CropUiState())
   val state: StateFlow<CropUiState> = _state.asStateFlow()
