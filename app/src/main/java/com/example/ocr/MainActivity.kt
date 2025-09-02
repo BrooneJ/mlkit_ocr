@@ -24,6 +24,7 @@ import com.example.ocr.screen.draw.DrawScreen
 import com.example.ocr.screen.draw.DrawViewModel
 import com.example.ocr.screen.main.MainScreen
 import com.example.ocr.screen.ocr.OcrScreen
+import com.example.ocr.screen.ocr.OcrViewModel
 import com.example.ocr.ui.theme.OCRTheme
 
 class MainActivity : ComponentActivity() {
@@ -121,10 +122,9 @@ class MainActivity : ComponentActivity() {
           }
 
           composable<OcrRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<OcrRoute>()
-            val capturedImageUri = route.uri
+            val viewModel: OcrViewModel = viewModel(backStackEntry)
             OcrScreen(
-              capturedImageUri = capturedImageUri,
+              viewModel = viewModel,
               onBack = {
                 navController.popBackStack()
               }

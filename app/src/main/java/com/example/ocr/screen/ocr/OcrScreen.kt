@@ -2,7 +2,6 @@
 
 package com.example.ocr.screen.ocr
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,13 +15,22 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun OcrScreen(
-  capturedImageUri: Uri,
+  viewModel: OcrViewModel,
   onBack: () -> Unit
 ) {
+
+  val text by viewModel.text.collectAsStateWithLifecycle()
+
+  if (text == null) {
+    viewModel.processImage(LocalContext.current)
+  }
 
   Scaffold(
     modifier = Modifier.fillMaxSize(),
@@ -40,9 +48,11 @@ fun OcrScreen(
       )
     }
   ) { paddingValues ->
+    val context = LocalContext.current
     Surface(modifier = Modifier.padding(paddingValues)) {
       Column {
         Text(text = "This is the OCR screen")
+        Text(text ?: "Processing...")
       }
     }
   }
