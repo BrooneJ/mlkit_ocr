@@ -25,7 +25,6 @@ class OcrViewModel(
     val uri = targetUri ?: return
     viewModelScope.launch {
       recognizeWordsFromUri(context, uri).let { words ->
-        Log.d("OcrViewModel", "words: $words")
         parseTable(words).forEach {
           Log.d("DaySchedule", it.toString())
         }
