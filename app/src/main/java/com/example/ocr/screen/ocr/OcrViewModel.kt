@@ -1,7 +1,11 @@
 package com.example.ocr.screen.ocr
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,6 +13,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
 import com.example.ocr.screen.ocr.utils.OcrWord
+import com.example.ocr.screen.ocr.utils.RectI
+import com.example.ocr.screen.ocr.utils.buildRowBands
+import com.example.ocr.screen.ocr.utils.extractScheduleJson
+import com.example.ocr.screen.ocr.utils.headerBandFromWords
+import com.example.ocr.screen.ocr.utils.isHeaderWord
 import com.example.ocr.screen.ocr.utils.recognizeWordsFromUri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,13 +35,41 @@ class OcrViewModel(
   fun processImage(context: Context) {
     val uri = targetUri ?: return
     viewModelScope.launch {
-      recognizeWordsFromUri(context, uri).let { words ->
-        parseTable(words).forEach {
-          Log.d("DaySchedule", it.toString())
-        }
-        _text.value = words.joinToString("\n") { it.text }
+      val bitmap = loadBitmap(context, uri) ?: return@launch
+      val words = recognizeWordsFromUri(context, uri)
+      words.forEach {
+        Log.v("OcrViewModel", "Word: '${it.text}' @(${it.left},${it.top},${it.right},${it.bottom})")
       }
+      val headerBand: RectI? = headerBandFromWords(words, imageWidth = bitmap.width)
+//      val headerBand = headerBandFromWords(words, bitmap.width)
+//        ?: RectI(0, 0, bitmap.width, (bitmap.height * 0.15f).toInt())
+      val bodyWords = words.filter { !isHeaderWord(it) && it.bottom > headerBand!!.bottom }
+      val rowBands = buildRowBands(bodyWords, imageWidth = bitmap.width)
+      val targetBand: RectI = rowBands.maxByOrNull { it.rect.height }?.rect ?: run {
+        RectI(0, headerBand!!.bottom, bitmap.width, bitmap.height)
+      }
+      val json = extractScheduleJson(
+        bitmap,
+        defaultYear = 2025,
+        defaultMonth = 9,
+        targetRowBand = targetBand
+      )
+      _text.value = json
+      Log.d("ScheduleJson", json)
     }
+  }
+}
+
+private fun loadBitmap(context: Context, uri: Uri, mutable: Boolean = false): Bitmap? {
+  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+    val src = ImageDecoder.createSource(context.contentResolver, uri)
+    ImageDecoder.decodeBitmap(src) { decoder, _, _ ->
+      decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+      decoder.isMutableRequired = mutable
+    }
+  } else {
+    @Suppress("DEPRECATION")
+    MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
   }
 }
 

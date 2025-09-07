@@ -29,8 +29,9 @@ suspend fun recognizeWordsFromUri(context: Context, uri: Uri): List<OcrWord> =
           block.lines.forEach { line ->
             line.elements.forEach { el ->
               el.boundingBox?.let { rect ->
+                if (el.text == "|") return@let
                 words += OcrWord(
-                  text = el.text,
+                  text = el.text.replace(Regex("^\\||\\|$"), "").replace("日", ""),
                   left = rect.left, top = rect.top,
                   right = rect.right, bottom = rect.bottom,
                 )
