@@ -41,8 +41,6 @@ class OcrViewModel(
         Log.v("OcrViewModel", "Word: '${it.text}' @(${it.left},${it.top},${it.right},${it.bottom})")
       }
       val headerBand: RectI? = headerBandFromWords(words, imageWidth = bitmap.width)
-//      val headerBand = headerBandFromWords(words, bitmap.width)
-//        ?: RectI(0, 0, bitmap.width, (bitmap.height * 0.15f).toInt())
       val bodyWords = words.filter { !isHeaderWord(it) && it.bottom > headerBand!!.bottom }
       val rowBands = buildRowBands(bodyWords, imageWidth = bitmap.width)
       val targetBand: RectI = rowBands.maxByOrNull { it.rect.height }?.rect ?: run {
