@@ -26,9 +26,6 @@ data class TableLayout(
   val rows: List<RectI>,
 )
 
-data class DayCell(val x1: Int, val y1: Int, val x2: Int, val y2: Int)
-data class ShiftCell(val x1: Int, val y1: Int, val x2: Int, val y2: Int)
-
 suspend fun recognizeText(bitmap: Bitmap): Text {
   val input = InputImage.fromBitmap(bitmap, 0)
   val recognizer = TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build())
@@ -143,24 +140,91 @@ fun pickColumnBoundaries(
   imgWidth: Int,
   charWidthPx: Int,
 ): List<Int> {
-  val avg = smoothed.average()
+  val min = smoothed.minOrNull()!!
+  val max = smoothed.maxOrNull()!!
   val minGap = maxOf(charWidthPx * 2, imgWidth / 16)
-  val depthThresh = avg * 0.6
 
-  val minima = mutableListOf<Int>()
+  val depthThresh = min + (max - min) * 0.25
+
+  val candidates = mutableListOf<Int>()
   for (x in 1 until smoothed.lastIndex) {
-    if (smoothed[x] <= smoothed[x - 1] && smoothed[x] <= smoothed[x + 1] && smoothed[x] < depthThresh) {
-      minima += x
+    val v = smoothed[x]
+    if (v <= smoothed[x - 1] && v <= smoothed[x + 1] && v <= depthThresh) {
+      val leftPeak = ((x - charWidthPx).coerceAtLeast(0)..x).maxOf { smoothed[it] }
+      val rightPeak = (x..(x + charWidthPx).coerceAtMost(smoothed.lastIndex)).maxOf { smoothed[it] }
+      val prominence = minOf(leftPeak - v, rightPeak - v)
+      if (prominence >= (max - min) * 0.10) { // 최소 돌출도
+        candidates += x
+      }
     }
   }
+
   val picked = mutableListOf<Int>()
-  for (m in minima) {
-    if (picked.isEmpty() || m - picked.last() >= minGap) picked += m
-  }
+  for (c in candidates) if (picked.isEmpty() || c - picked.last() >= minGap) picked += c
+
   return buildList {
     add(0)
     addAll(picked)
     add(imgWidth)
+  }
+}
+
+data class Peak(val x: Int, val prom: Double)
+
+fun pickColumnBoundariesRobust(
+  s: IntArray,
+  imgWidth: Int,
+  charWidthPx: Int,
+  lookForValleys: Boolean = true
+): List<Int> {
+  if (s.isEmpty()) return listOf(0, imgWidth)
+
+  // 1) 0..1 정규화
+  val min = s.minOrNull()!!.toDouble()
+  val max = s.maxOrNull()!!.toDouble()
+  val range = (max - min).coerceAtLeast(1.0)
+  val n = s.size
+  val norm = DoubleArray(n) { (s[it] - min) / range }
+
+  val R = charWidthPx.coerceAtLeast(8)
+  fun localAvg(i: Int): Double {
+    val a = (i - R).coerceAtLeast(0)
+    val b = (i + R).coerceAtMost(n - 1)
+    var sum = 0.0
+    for (k in a..b) sum += norm[k]
+    return sum / (b - a + 1)
+  }
+
+  val cand = mutableListOf<Peak>()
+  for (i in 1 until n - 1) {
+    val v = norm[i]
+    val isExtrema =
+      if (lookForValleys) (v <= norm[i - 1] && v <= norm[i + 1])
+      else (v >= norm[i - 1] && v >= norm[i + 1])
+
+    if (!isExtrema) continue
+
+    val lavg = localAvg(i)
+    val prom = if (lookForValleys) (lavg - v) else (v - lavg)
+    if (prom >= 0.10) {
+      cand += Peak(i, prom)
+    }
+  }
+
+  if (cand.isEmpty()) return listOf(0, imgWidth)
+
+  val minGap = maxOf(charWidthPx * 2, imgWidth / 16)
+
+  val picked = mutableListOf<Int>()
+  for (p in cand.sortedByDescending { it.prom }) {
+    if (picked.none { kotlin.math.abs(it - p.x) < minGap }) {
+      picked += p.x
+    }
+  }
+
+  picked.sort()
+  return buildList {
+    add(0); addAll(picked); add(imgWidth)
   }
 }
 
@@ -170,24 +234,49 @@ fun roughCharWidthPx(bitmap: Bitmap, header: RectI): Int {
 
 suspend fun recoverLayout(bitmap: Bitmap): TableLayout {
   val header = headerBandOf(bitmap)
-  val projection = withContext(Dispatchers.IO) {
-    verticalProjection(bitmap, header)
-  }
-  Log.d("TableLayout", "Projection: ${projection.joinToString(",")}")
-  val charWidth = roughCharWidthPx(bitmap, header)
-  val smoothed = smooth(projection, radius = charWidth)
-  val columns = pickColumnBoundaries(smoothed, bitmap.width, charWidth)
+  val proj = withContext(Dispatchers.Default) { verticalProjection(bitmap, header) }
+  val charWidth = roughCharWidthPx(bitmap, header) // 대략치 OK
+  val smoothed = smooth(proj, radius = charWidth)
+
+  val a = pickColumnBoundaries(smoothed, header.width, charWidth)
+  val b = pickColumnBoundariesRobust(proj, header.width, charWidth)
+
+  val raw = if (b.size <= a.size) b else a
+
+  val columns = enforceMinCellWidth(raw, minWidth = 36)
+
   return TableLayout(headerBand = header, columns = columns, rows = emptyList())
 }
 
 fun cropBitmap(src: Bitmap, rect: RectI): Bitmap =
   Bitmap.createBitmap(src, rect.left, rect.top, rect.width, rect.height)
 
+fun clampRectToMin(r: RectI, imgW: Int, imgH: Int, minW: Int, minH: Int, pad: Int = 6): RectI {
+  var x1 = r.left
+  var x2 = r.right
+  var y1 = r.top
+  var y2 = r.bottom
+
+  if (x2 - x1 < minW) {
+    val need = minW - (x2 - x1)
+    x1 = (x1 - need / 2 - pad).coerceAtLeast(0)
+    x2 = (x2 + need / 2 + pad).coerceAtMost(imgW)
+  }
+  if (y2 - y1 < minH) {
+    val need = minH - (y2 - y1)
+    y1 = (y1 - need / 2 - pad).coerceAtLeast(0)
+    y2 = (y2 + need / 2 + pad).coerceAtMost(imgH)
+  }
+  return RectI(x1, y1, x2, y2)
+}
+
 suspend fun ocrCellText(bitmap: Bitmap, cell: RectI): String {
-  val sub = cropBitmap(bitmap, cell)
+  val minDim = 32
+  val safe = clampRectToMin(cell, bitmap.width, bitmap.height, minDim, minDim, pad = 6)
+  if (safe.width < minDim || safe.height < minDim) return "" // 최후의 방어
+  val sub = cropBitmap(bitmap, safe)
   val text = recognizeText(sub).text
-  return text.replace("[()（）\\[\\]{}]".toRegex(), " ")
-    .trim()
+  return text.replace("[()（）\\[\\]{}]".toRegex(), " ").trim()
 }
 
 data class ParsedDate(val month: Int, val day: Int)
@@ -211,8 +300,11 @@ suspend fun extractScheduleJson(
   targetRowBand: RectI,
 ): String {
   val layout = recoverLayout(bitmap)
+  Log.d("OCR", "layout: $layout")
   val header = layout.headerBand
+  Log.d("OCR", "header: $header")
   val xs = layout.columns
+  Log.d("OCR", "xs: $xs")
 
   data class Entry(val date: String, val shift: String)
 
@@ -248,14 +340,6 @@ fun isHeaderWord(word: OcrWord): Boolean {
   return dateRegex.matches(text) || weekdayRegex.matches(text)
 }
 
-fun headerBandFromWords(words: List<OcrWord>, imageWidth: Int, margin: Int = 8): RectI? {
-  val headerWords = words.filter { isHeaderWord(it) }
-  if (headerWords.isEmpty()) return null
-  val top = (headerWords.minOf { it.top } - margin).coerceAtLeast(0)
-  val bottom = headerWords.maxOf { it.bottom } + margin
-  return RectI(0, top, imageWidth, bottom)
-}
-
 fun buildRowBands(
   words: List<OcrWord>,
   imageWidth: Int,
@@ -274,3 +358,18 @@ fun buildRowBands(
     RowBand(idx, RectI(0, top, imageWidth, bottom))
   }
 }
+
+fun enforceMinCellWidth(edges: List<Int>, minWidth: Int): List<Int> {
+  if (edges.size <= 2) return edges
+  val out = mutableListOf<Int>()
+  var i = 0
+  while (i < edges.size - 1) {
+    var j = i + 1
+    while (j < edges.size && edges[j] - edges[i] < minWidth) j++
+    out += edges[i]
+    i = j
+  }
+  if (out.last() != edges.last()) out += edges.last()
+  return out
+}
+

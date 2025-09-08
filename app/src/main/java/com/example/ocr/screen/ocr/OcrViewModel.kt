@@ -12,7 +12,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
-import com.example.ocr.screen.ocr.utils.OcrWord
 import com.example.ocr.screen.ocr.utils.RectI
 import com.example.ocr.screen.ocr.utils.buildRowBands
 import com.example.ocr.screen.ocr.utils.extractScheduleJson
@@ -46,6 +45,7 @@ class OcrViewModel(
       val targetBand: RectI = rowBands.maxByOrNull { it.rect.height }?.rect ?: run {
         RectI(0, headerBand!!.bottom, bitmap.width, bitmap.height)
       }
+      Log.d("TargetBand", "Using target band: $targetBand")
       val json = extractScheduleJson(
         bitmap,
         defaultYear = 2025,
@@ -94,72 +94,5 @@ fun <T> cluster1D(
   return groups
 }
 
-data class Stats(val avgW: Float, val avgH: Float)
-
-fun stats(words: List<OcrWord>) = Stats(
-  avgW = (words.sumOf { it.w.toDouble() } / words.size).toFloat(),
-  avgH = (words.sumOf { it.h.toDouble() } / words.size).toFloat()
-)
-
-data class Column(val words: List<OcrWord>) {
-  val cx = words.map { it.cx }.average().toFloat()
-}
-
-fun buildColumns(words: List<OcrWord>): List<Column> {
-  val s = stats(words)
-  val gapX = s.avgW * 1.2f
-  val groups = cluster1D(words, key = { it.cx }, gap = gapX)
-  return groups.map { Column(it) }.sortedBy { it.cx }
-}
-
 val dateRegex = Regex("""^\d{1,2}/\d{1,2}$""")
 val weekdayRegex = Regex("""^[\(\（].+[\)\）]$""")
-
-data class Cell(val rowIndex: Int, val text: String)
-data class ColumnParsed(
-  val dateText: String?, val weekdayText: String?,
-  val cells: List<Cell>
-)
-
-fun parseColumn(col: Column): ColumnParsed {
-  val header = mutableListOf<OcrWord>()
-  val body = mutableListOf<OcrWord>()
-
-  col.words.forEach { w ->
-    val t = w.text.replace(" ", "").trim()
-    when {
-      dateRegex.matches(t) -> header += w
-      weekdayRegex.matches(t) -> header += w
-      else -> body += w
-    }
-  }
-
-  val gapY = (stats(col.words).avgH) * 0.9f
-  val rowGroups = cluster1D(body, key = { it.cy }, gap = gapY)
-    .mapIndexed { idx, g ->
-      val joined = g.sortedBy { it.cx }.joinToString("") { it.text }
-      Cell(rowIndex = idx, text = joined)
-    }
-
-  val dateText = header.firstOrNull { dateRegex.matches(it.text) }?.text
-  val weekdayText = header.firstOrNull { weekdayRegex.matches(it.text) }?.text
-  return ColumnParsed(dateText, weekdayText, rowGroups)
-}
-
-data class DaySchedule(
-  val date: String,
-  val weekday: String?,
-  val duty: String?
-)
-
-fun parseTable(words: List<OcrWord>): List<DaySchedule> {
-  val columns = buildColumns(words)
-  return columns.map { col ->
-    val p = parseColumn(col)
-    DaySchedule(
-      date = p.dateText ?: "",
-      weekday = p.weekdayText,
-      duty = p.cells.lastOrNull()?.text
-    )
-  }
-}
