@@ -234,8 +234,11 @@ fun roughCharWidthPx(bitmap: Bitmap, header: RectI): Int {
 
 suspend fun recoverLayout(bitmap: Bitmap): TableLayout {
   val header = headerBandOf(bitmap)
+  Log.d("HeaderBand", "Using header band: $header")
   val proj = withContext(Dispatchers.Default) { verticalProjection(bitmap, header) }
-  val charWidth = roughCharWidthPx(bitmap, header) // 대략치 OK
+  Log.d("Projection", "Vertical projection size=${proj.size}")
+  val charWidth = roughCharWidthPx(bitmap, header)
+  Log.d("CharWidth", "Estimated char width: $charWidth")
   val smoothed = smooth(proj, radius = charWidth)
 
   val a = pickColumnBoundaries(smoothed, header.width, charWidth)
@@ -300,11 +303,8 @@ suspend fun extractScheduleJson(
   targetRowBand: RectI,
 ): String {
   val layout = recoverLayout(bitmap)
-  Log.d("OCR", "layout: $layout")
   val header = layout.headerBand
-  Log.d("OCR", "header: $header")
   val xs = layout.columns
-  Log.d("OCR", "xs: $xs")
 
   data class Entry(val date: String, val shift: String)
 
@@ -352,6 +352,7 @@ fun buildRowBands(
   val gY = gapY ?: (avgHeight * 0.9f)
 
   val rows = cluster1D(items = words, key = { it.cy }, gap = gY)
+  Log.d("RowBands", "Detected ${rows.size} rows with gapY=$gY (avgH=$avgHeight)")
   return rows.mapIndexed { idx, group ->
     val top = (group.minOf { it.top } - padding).coerceAtLeast(0)
     val bottom = group.maxOf { it.bottom } + padding
@@ -373,3 +374,57 @@ fun enforceMinCellWidth(edges: List<Int>, minWidth: Int): List<Int> {
   return out
 }
 
+fun roughCharWidth(row: RectI) = maxOf(row.height / 4, 6) // 경험값
+
+// 2) 행별 열 경계
+fun detectEdgesInRow(
+  bitmap: Bitmap,
+  row: RectI,
+  usePeaksFirst: Boolean = true,
+  minCellW: Int = 36
+): List<Int> {
+  val proj = verticalProjection(bitmap, row)
+  val r = roughCharWidth(row)
+  val smoothed = smooth(proj, radius = r)
+
+  val edgesPeak = pickColumnBoundariesRobust(proj, row.width, r, lookForValleys = false)
+  val edgesValley = pickColumnBoundaries(smoothed, row.width, r) // 밸리 버전
+  val raw = when {
+    usePeaksFirst && edgesPeak.size >= 3 -> edgesPeak
+    else -> edgesValley
+  }
+  return enforceMinCellWidth(raw, minCellW).map { row.left + it } // ROI→절대좌표
+}
+
+// 3) 셀 OCR
+suspend fun ocrCell(bitmap: Bitmap, x1: Int, x2: Int, row: RectI): String {
+  val shrink = 3 // 그리드선 회피
+  val cell = RectI(
+    (x1 + shrink).coerceAtMost(x2),
+    row.top,
+    (x2 - shrink).coerceAtLeast(x1),
+    row.bottom
+  )
+  return ocrCellText(bitmap, cell) // 내부에서 32x32 보정
+}
+
+suspend fun readHeaderDates(
+  bitmap: Bitmap,
+  header: RectI,
+//  columns: List<Int>,           // recoverLayout()에서 나온 열 경계들
+  defaultYear: Int,
+  defaultMonth: Int
+): List<ParsedDate?> {
+  val columns = recoverLayout(bitmap).columns
+  val results = mutableListOf<ParsedDate?>()
+  for (i in 0 until columns.size - 1) {
+    val x1 = columns[i];
+    val x2 = columns[i + 1]
+    if (x2 - x1 < 12) {
+      results += null; continue
+    } // 너무 좁은 칸은 스킵
+    val text = ocrCell(bitmap, x1, x2, header)
+    results += parseDate(text, defaultYear, defaultMonth) // "9/1" 또는 "1" → (month, day)
+  }
+  return results
+}
