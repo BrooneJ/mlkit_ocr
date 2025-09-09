@@ -80,6 +80,20 @@ fun headerBandFromWords(words: List<OcrWord>, imageWidth: Int): RectI? {
   return RectI(0, y1, imageWidth, y2)
 }
 
+fun bodyBandFromWords(
+  words: List<OcrWord>,
+  headerBand: RectI,
+  imageWidth: Int,
+  imageHeight: Int,
+  margin: Int = 8
+): RectI? {
+  val bodyWords = words.filter { it.bottom > headerBand.bottom }
+  if (bodyWords.isEmpty()) return null
+  val top = (bodyWords.minOf { it.top } - margin).coerceAtLeast(0)
+  val bottom = (bodyWords.maxOf { it.bottom } + margin).coerceAtMost(imageHeight)
+  return RectI(0, top, imageWidth, bottom)
+}
+
 fun verticalProjection(bitmap: Bitmap, roi: RectI): IntArray {
   val width = roi.width
   val height = roi.height

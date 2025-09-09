@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
 import com.example.ocr.screen.ocr.utils.RectI
+import com.example.ocr.screen.ocr.utils.bodyBandFromWords
 import com.example.ocr.screen.ocr.utils.buildRowBands
 import com.example.ocr.screen.ocr.utils.detectEdgesInRow
 import com.example.ocr.screen.ocr.utils.extractScheduleJson
@@ -50,8 +51,13 @@ class OcrViewModel(
       val test2 = readHeaderDates(bitmap, headerBand, 2025, 9)
       Log.d("Text2", "Detected header dates: $test2")
 
-      val bodyWords = words.filter { !isHeaderWord(it) && it.bottom > headerBand!!.bottom }
+      val bodyWords = words.filter { !isHeaderWord(it) && it.bottom > headerBand.bottom }
       Log.d("BodyWords", "Detected $bodyWords body words")
+
+      val test3 = bodyBandFromWords(bodyWords, headerBand, bitmap.width, bitmap.height)
+      Log.d("Text3", "Detected body band: $test3")
+
+
       val rowBands = buildRowBands(bodyWords, imageWidth = bitmap.width)
       Log.d("RowBands", "Detected $rowBands row bands")
       val targetBand: RectI = rowBands.maxByOrNull { it.rect.height }?.rect ?: run {
