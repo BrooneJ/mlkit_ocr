@@ -442,3 +442,19 @@ suspend fun readHeaderDates(
   }
   return results
 }
+
+fun clampToBitmap(r: RectI, imageWidth: Int, imageHeight: Int): RectI {
+  val x1 = r.left.coerceIn(0, imageWidth)
+  val x2 = r.right.coerceIn(0, imageWidth)
+  val y1 = r.top.coerceIn(0, imageHeight)
+  val y2 = r.bottom.coerceIn(0, imageHeight)
+
+  val w = (x2 - x1).coerceAtLeast(1)
+  val h = (y2 - y1).coerceAtLeast(1)
+  return RectI(x1, y1, x1 + w, y1 + h)
+}
+
+fun cropToBitmap(src: Bitmap, rect: RectI): Bitmap {
+  val safe = clampToBitmap(rect, src.width, src.height)
+  return Bitmap.createBitmap(src, safe.left, safe.top, safe.width, safe.height)
+}
