@@ -95,22 +95,19 @@ fun bodyBandFromWords(
 }
 
 fun verticalProjection(bitmap: Bitmap, roi: RectI): IntArray {
-  val width = roi.width
-  val height = roi.height
+  val r = clampToBitmap(roi, bitmap.width, bitmap.height)
+  val width = r.width
+  val height = r.height
   val pixels = IntArray(width * height)
-  Log.d("VerticalProjection", "$pixels")
-  Log.d("VerticalProjection", "ROI: $roi, size=${pixels.size}, w=$width, h=$height")
-  Log.d("VerticalProjection", "Bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
-  bitmap.getPixels(pixels, 0, width, roi.left, roi.top, width, height)
-
+  bitmap.getPixels(pixels, 0, width, r.left, r.top, width, height)
   val colSums = IntArray(width)
   for (y in 0 until height) {
     for (x in 0 until width) {
-      val pixel = pixels[y * width + x]
-      val r = (pixel shr 16 and 0xFF)
-      val g = (pixel shr 8 and 0xFF)
-      val b = pixel and 0xFF
-      val luma = (0.299 * r + 0.587 * g + 0.114 * b).toInt()
+      val p = pixels[y * width + x]
+      val rC = (p shr 16) and 0xFF
+      val gC = (p shr 8) and 0xFF
+      val bC = p and 0xFF
+      val luma = (0.299 * rC + 0.587 * gC + 0.114 * bC).toInt()
       val darkness = 255 - luma
       colSums[x] += darkness
     }
@@ -467,7 +464,7 @@ fun drawColumnDebug(src: Bitmap, roi: RectI, edgesAbsX: List<Int>): Bitmap {
   val boxPaint = android.graphics.Paint().apply {
     color = android.graphics.Color.GREEN
     style = android.graphics.Paint.Style.STROKE
-    strokeWidth = 3f
+    strokeWidth = 5f
   }
   c.drawRect(
     android.graphics.Rect(roi.left, roi.top, roi.right, roi.bottom),
@@ -476,7 +473,7 @@ fun drawColumnDebug(src: Bitmap, roi: RectI, edgesAbsX: List<Int>): Bitmap {
 
   val edgePaint = android.graphics.Paint().apply {
     color = android.graphics.Color.RED
-    strokeWidth = 2f
+    strokeWidth = 5f
   }
   edgesAbsX.forEach { x ->
     c.drawLine(
