@@ -98,6 +98,9 @@ fun verticalProjection(bitmap: Bitmap, roi: RectI): IntArray {
   val width = roi.width
   val height = roi.height
   val pixels = IntArray(width * height)
+  Log.d("VerticalProjection", "$pixels")
+  Log.d("VerticalProjection", "ROI: $roi, size=${pixels.size}, w=$width, h=$height")
+  Log.d("VerticalProjection", "Bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
   bitmap.getPixels(pixels, 0, width, roi.left, roi.top, width, height)
 
   val colSums = IntArray(width)
@@ -248,11 +251,8 @@ fun roughCharWidthPx(bitmap: Bitmap, header: RectI): Int {
 
 suspend fun recoverLayout(bitmap: Bitmap): TableLayout {
   val header = headerBandOf(bitmap)
-  Log.d("HeaderBand", "Using header band: $header")
   val proj = withContext(Dispatchers.Default) { verticalProjection(bitmap, header) }
-  Log.d("Projection", "Vertical projection size=${proj.size}")
   val charWidth = roughCharWidthPx(bitmap, header)
-  Log.d("CharWidth", "Estimated char width: $charWidth")
   val smoothed = smooth(proj, radius = charWidth)
 
   val a = pickColumnBoundaries(smoothed, header.width, charWidth)
@@ -388,7 +388,7 @@ fun enforceMinCellWidth(edges: List<Int>, minWidth: Int): List<Int> {
   return out
 }
 
-fun roughCharWidth(row: RectI) = maxOf(row.height / 4, 6) // 경험값
+fun roughCharWidth(row: RectI) = maxOf(row.height, 6) // 경험값
 
 // 2) 행별 열 경계
 fun detectEdgesInRow(
@@ -457,4 +457,33 @@ fun clampToBitmap(r: RectI, imageWidth: Int, imageHeight: Int): RectI {
 fun cropToBitmap(src: Bitmap, rect: RectI): Bitmap {
   val safe = clampToBitmap(rect, src.width, src.height)
   return Bitmap.createBitmap(src, safe.left, safe.top, safe.width, safe.height)
+}
+
+fun drawColumnDebug(src: Bitmap, roi: RectI, edgesAbsX: List<Int>): Bitmap {
+  // Make a mutable copy to draw on
+  val bmp = src.copy(Bitmap.Config.ARGB_8888, true)
+  val c = android.graphics.Canvas(bmp)
+
+  val boxPaint = android.graphics.Paint().apply {
+    color = android.graphics.Color.GREEN
+    style = android.graphics.Paint.Style.STROKE
+    strokeWidth = 3f
+  }
+  c.drawRect(
+    android.graphics.Rect(roi.left, roi.top, roi.right, roi.bottom),
+    boxPaint
+  )
+
+  val edgePaint = android.graphics.Paint().apply {
+    color = android.graphics.Color.RED
+    strokeWidth = 2f
+  }
+  edgesAbsX.forEach { x ->
+    c.drawLine(
+      x.toFloat(), roi.top.toFloat(),
+      x.toFloat(), roi.bottom.toFloat(),
+      edgePaint
+    )
+  }
+  return bmp
 }

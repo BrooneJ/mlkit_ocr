@@ -14,8 +14,15 @@ import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
 import com.example.ocr.screen.ocr.utils.RectI
 import com.example.ocr.screen.ocr.utils.cropToBitmap
+import com.example.ocr.screen.ocr.utils.drawColumnDebug
 import com.example.ocr.screen.ocr.utils.headerBandFromWords
+import com.example.ocr.screen.ocr.utils.pickColumnBoundaries
+import com.example.ocr.screen.ocr.utils.pickColumnBoundariesRobust
+import com.example.ocr.screen.ocr.utils.recognizeText
 import com.example.ocr.screen.ocr.utils.recognizeWordsFromUri
+import com.example.ocr.screen.ocr.utils.roughCharWidth
+import com.example.ocr.screen.ocr.utils.smooth
+import com.example.ocr.screen.ocr.utils.verticalProjection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -32,6 +39,9 @@ class OcrViewModel(
   private val _headerPreview = MutableStateFlow<Bitmap?>(null)
   val headerPreview = _headerPreview.asStateFlow()
 
+  private val _test = MutableStateFlow<Bitmap?>(null)
+  val test = _test.asStateFlow()
+
   fun processImage(context: Context) {
     val uri = targetUri ?: return
     viewModelScope.launch {
@@ -45,6 +55,27 @@ class OcrViewModel(
 
       if (headerBand == null) return@launch
       _headerPreview.value = cropToBitmap(bitmap, headerBand)
+
+      if (_headerPreview.value != null) {
+        val proj = verticalProjection(_headerPreview.value!!, headerBand)
+        Log.d("VerticalProjection", "Vertical projection: $proj")
+        val r = roughCharWidth(headerBand)
+        Log.d("RoughCharWidth", "Rough char width: $r")
+        val smoothed = smooth(proj, r)
+        Log.d("ProjectionSmoothing", "Smoothed projection: $smoothed")
+
+        val edgesFromValleys = pickColumnBoundaries(smoothed, headerBand.width, r)
+        Log.d("ColumnBoundaries", "Detected column boundaries: $edgesFromValleys")
+        val edgesFromPeaks = pickColumnBoundariesRobust(proj, headerBand.width, r, false)
+        Log.d("ColumnBoundaries", "Detected column boundaries (robust): $edgesFromPeaks")
+        val edges = (if (edgesFromPeaks.size >= 3) edgesFromPeaks else edgesFromValleys).map {
+          headerBand.left + it
+        }
+        _test.value = drawColumnDebug(bitmap, headerBand, edges)
+      }
+
+      val testWord = recognizeText(_headerPreview.value ?: return@launch)
+      Log.d("OcrViewModel", "Test recognized text: $testWord")
     }
   }
 }

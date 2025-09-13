@@ -38,6 +38,7 @@ fun OcrScreen(
 
   val text by viewModel.text.collectAsStateWithLifecycle()
   val headerBitmap by viewModel.headerPreview.collectAsStateWithLifecycle()
+  val test by viewModel.test.collectAsStateWithLifecycle()
 
   if (text == null) {
     Text("No Text")
@@ -74,6 +75,18 @@ fun OcrScreen(
           )
         } else {
           Text(text = "No header preview available", modifier = Modifier.padding(12.dp))
+        }
+        if (test != null) {
+          Text(text = "Test Image:")
+          Image(
+            bitmap = test!!.asImageBitmap(),
+            contentDescription = null,
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(12.dp)
+          )
+        } else {
+          Text(text = "No test image available", modifier = Modifier.padding(12.dp))
         }
       }
     }
