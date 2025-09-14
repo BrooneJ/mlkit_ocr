@@ -13,9 +13,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
 import com.example.ocr.screen.ocr.utils.RectI
+import com.example.ocr.screen.ocr.utils.RowType
 import com.example.ocr.screen.ocr.utils.cropToBitmap
+import com.example.ocr.screen.ocr.utils.detectEdgesInRow
 import com.example.ocr.screen.ocr.utils.drawColumnDebug
+import com.example.ocr.screen.ocr.utils.enforceMinCellWidth
 import com.example.ocr.screen.ocr.utils.headerBandFromWords
+import com.example.ocr.screen.ocr.utils.minCellWidth
 import com.example.ocr.screen.ocr.utils.pickColumnBoundaries
 import com.example.ocr.screen.ocr.utils.pickColumnBoundariesRobust
 import com.example.ocr.screen.ocr.utils.recognizeText
@@ -42,6 +46,18 @@ class OcrViewModel(
   private val _test = MutableStateFlow<Bitmap?>(null)
   val test = _test.asStateFlow()
 
+  private val _test2 = MutableStateFlow<Bitmap?>(null)
+  val test2 = _test2.asStateFlow()
+
+  private val _test3 = MutableStateFlow<Bitmap?>(null)
+  val test3 = _test3.asStateFlow()
+
+  private val _test4 = MutableStateFlow<Bitmap?>(null)
+  val test4 = _test4.asStateFlow()
+
+  private val _test5 = MutableStateFlow<Bitmap?>(null)
+  val test5 = _test5.asStateFlow()
+
   fun processImage(context: Context) {
     val uri = targetUri ?: return
     viewModelScope.launch {
@@ -63,15 +79,22 @@ class OcrViewModel(
         Log.d("RoughCharWidth", "Rough char width: $r")
         val smoothed = smooth(proj, r)
         Log.d("ProjectionSmoothing", "Smoothed projection: $smoothed")
+        val minW = minCellWidth(headerBand, r)
 
         val edgesFromValleys = pickColumnBoundaries(smoothed, headerBand.width, r)
-        Log.d("ColumnBoundaries", "Detected column boundaries: $edgesFromValleys")
         val edgesFromPeaks = pickColumnBoundariesRobust(proj, headerBand.width, r, false)
         Log.d("ColumnBoundaries", "Detected column boundaries (robust): $edgesFromPeaks")
-        val edges = (if (edgesFromPeaks.size >= 3) edgesFromPeaks else edgesFromValleys).map {
-          headerBand.left + it
+        val charW = (headerBand.height * 0.6f).toInt().coerceAtLeast(8)
+        val edges = pickColumnBoundariesAdaptive(proj, headerBand.width, charW, 40).map {
+          it + headerBand.left
         }
+        val edgesEnforce = enforceMinCellWidth(edges, minW)
+        val edgesFromWidth = detectEdgesInRow(bitmap, headerBand, RowType.Header)
         _test.value = drawColumnDebug(bitmap, headerBand, edges)
+        _test2.value = drawColumnDebug(bitmap, headerBand, edgesFromPeaks)
+        _test3.value = drawColumnDebug(bitmap, headerBand, edgesFromWidth)
+        _test4.value = drawColumnDebug(bitmap, headerBand, edgesFromValleys)
+        _test5.value = drawColumnDebug(bitmap, headerBand, edgesEnforce)
       }
 
       val testWord = recognizeText(_headerPreview.value ?: return@launch)
