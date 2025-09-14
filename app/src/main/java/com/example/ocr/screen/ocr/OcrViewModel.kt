@@ -43,20 +43,20 @@ class OcrViewModel(
   private val _headerPreview = MutableStateFlow<Bitmap?>(null)
   val headerPreview = _headerPreview.asStateFlow()
 
-  private val _test = MutableStateFlow<Bitmap?>(null)
-  val test = _test.asStateFlow()
+  private val _logic1 = MutableStateFlow<Bitmap?>(null)
+  val logic1 = _logic1.asStateFlow()
 
-  private val _test2 = MutableStateFlow<Bitmap?>(null)
-  val test2 = _test2.asStateFlow()
+  private val _logic2 = MutableStateFlow<Bitmap?>(null)
+  val logic2 = _logic2.asStateFlow()
 
-  private val _test3 = MutableStateFlow<Bitmap?>(null)
-  val test3 = _test3.asStateFlow()
+  private val _logic3 = MutableStateFlow<Bitmap?>(null)
+  val logic3 = _logic3.asStateFlow()
 
-  private val _test4 = MutableStateFlow<Bitmap?>(null)
-  val test4 = _test4.asStateFlow()
+  private val _logic4 = MutableStateFlow<Bitmap?>(null)
+  val logic4 = _logic4.asStateFlow()
 
-  private val _test5 = MutableStateFlow<Bitmap?>(null)
-  val test5 = _test5.asStateFlow()
+  private val _logic5 = MutableStateFlow<Bitmap?>(null)
+  val logic5 = _logic5.asStateFlow()
 
   fun processImage(context: Context) {
     val uri = targetUri ?: return
@@ -90,11 +90,11 @@ class OcrViewModel(
         }
         val edgesEnforce = enforceMinCellWidth(edges, minW)
         val edgesFromWidth = detectEdgesInRow(bitmap, headerBand, RowType.Header)
-        _test.value = drawColumnDebug(bitmap, headerBand, edges)
-        _test2.value = drawColumnDebug(bitmap, headerBand, edgesFromPeaks)
-        _test3.value = drawColumnDebug(bitmap, headerBand, edgesFromWidth)
-        _test4.value = drawColumnDebug(bitmap, headerBand, edgesFromValleys)
-        _test5.value = drawColumnDebug(bitmap, headerBand, edgesEnforce)
+        _logic1.value = drawColumnDebug(bitmap, headerBand, edges)
+        _logic2.value = drawColumnDebug(bitmap, headerBand, edgesFromPeaks)
+        _logic3.value = drawColumnDebug(bitmap, headerBand, edgesFromWidth)
+        _logic4.value = drawColumnDebug(bitmap, headerBand, edgesFromValleys)
+        _logic5.value = drawColumnDebug(bitmap, headerBand, edgesEnforce)
       }
 
       val testWord = recognizeText(_headerPreview.value ?: return@launch)

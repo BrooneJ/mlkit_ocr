@@ -43,11 +43,11 @@ fun OcrScreen(
 
   val text by viewModel.text.collectAsStateWithLifecycle()
   val headerBitmap by viewModel.headerPreview.collectAsStateWithLifecycle()
-  val test by viewModel.test.collectAsStateWithLifecycle()
-  val test2 by viewModel.test2.collectAsStateWithLifecycle()
-  val test3 by viewModel.test3.collectAsStateWithLifecycle()
-  val test4 by viewModel.test4.collectAsStateWithLifecycle()
-  val test5 by viewModel.test5.collectAsStateWithLifecycle()
+  val logic1 by viewModel.logic1.collectAsStateWithLifecycle()
+  val logic2 by viewModel.logic2.collectAsStateWithLifecycle()
+  val logic3 by viewModel.logic3.collectAsStateWithLifecycle()
+  val logic4 by viewModel.logic4.collectAsStateWithLifecycle()
+  val logic5 by viewModel.logic5.collectAsStateWithLifecycle()
 
   if (text == null) {
     Text("No Text")
@@ -91,10 +91,10 @@ fun OcrScreen(
         } else {
           Text(text = "No header preview available", modifier = Modifier.padding(12.dp))
         }
-        if (test != null) {
+        if (logic1 != null) {
           Text(text = "Test Image1:")
           Image(
-            bitmap = test!!.asImageBitmap(),
+            bitmap = logic1!!.asImageBitmap(),
             contentDescription = null,
             modifier = Modifier
               .fillMaxWidth()
@@ -103,10 +103,10 @@ fun OcrScreen(
         } else {
           Text(text = "No test image available", modifier = Modifier.padding(12.dp))
         }
-        if (test2 != null) {
+        if (logic2 != null) {
           Text(text = "Test Image2:")
           Image(
-            bitmap = test2!!.asImageBitmap(),
+            bitmap = logic2!!.asImageBitmap(),
             contentDescription = null,
             modifier = Modifier
               .fillMaxWidth()
@@ -115,10 +115,10 @@ fun OcrScreen(
         } else {
           Text(text = "No test image available", modifier = Modifier.padding(12.dp))
         }
-        if (test3 != null) {
+        if (logic3 != null) {
           Text(text = "Test Image3:")
           Image(
-            bitmap = test3!!.asImageBitmap(),
+            bitmap = logic3!!.asImageBitmap(),
             contentDescription = null,
             modifier = Modifier
               .fillMaxWidth()
@@ -127,10 +127,10 @@ fun OcrScreen(
         } else {
           Text(text = "No test image available", modifier = Modifier.padding(12.dp))
         }
-        if (test4 != null) {
+        if (logic4 != null) {
           Text(text = "Test Image4:")
           Image(
-            bitmap = test4!!.asImageBitmap(),
+            bitmap = logic4!!.asImageBitmap(),
             contentDescription = null,
             modifier = Modifier
               .fillMaxWidth()
@@ -139,10 +139,10 @@ fun OcrScreen(
         } else {
           Text(text = "No test image available", modifier = Modifier.padding(12.dp))
         }
-        if (test5 != null) {
+        if (logic5 != null) {
           Text(text = "Test Image5:")
           Image(
-            bitmap = test5!!.asImageBitmap(),
+            bitmap = logic5!!.asImageBitmap(),
             contentDescription = null,
             modifier = Modifier
               .fillMaxWidth()
