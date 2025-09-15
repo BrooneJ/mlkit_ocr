@@ -547,7 +547,7 @@ fun drawColumnDebug(src: Bitmap, roi: RectI, edgesAbsX: List<Int>): Bitmap {
 
   val edgePaint = android.graphics.Paint().apply {
     color = android.graphics.Color.RED
-    strokeWidth = 5f
+    strokeWidth = 10f
   }
   edgesAbsX.forEach { x ->
     c.drawLine(
