@@ -2,10 +2,9 @@
 
 package com.example.ocr.screen.ocr
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,10 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ocr.screen.ocr.components.SelectableCard
 
 @Composable
 fun OcrScreen(
@@ -77,80 +76,27 @@ fun OcrScreen(
           .padding(16.dp)
 
       ) {
-        Text(text = "This is the OCR screen")
-        Text(text ?: "Processing...")
-        Text(text = "Header Preview:")
-        if (headerBitmap != null) {
-          Image(
-            bitmap = headerBitmap!!.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(12.dp)
-          )
-        } else {
-          Text(text = "No header preview available", modifier = Modifier.padding(12.dp))
-        }
-        if (logic1 != null) {
-          Text(text = "Test Image1:")
-          Image(
-            bitmap = logic1!!.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(12.dp)
-          )
-        } else {
-          Text(text = "No test image available", modifier = Modifier.padding(12.dp))
-        }
-        if (logic2 != null) {
-          Text(text = "Test Image2:")
-          Image(
-            bitmap = logic2!!.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(12.dp)
-          )
-        } else {
-          Text(text = "No test image available", modifier = Modifier.padding(12.dp))
-        }
-        if (logic3 != null) {
-          Text(text = "Test Image3:")
-          Image(
-            bitmap = logic3!!.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(12.dp)
-          )
-        } else {
-          Text(text = "No test image available", modifier = Modifier.padding(12.dp))
-        }
-        if (logic4 != null) {
-          Text(text = "Test Image4:")
-          Image(
-            bitmap = logic4!!.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(12.dp)
-          )
-        } else {
-          Text(text = "No test image available", modifier = Modifier.padding(12.dp))
-        }
-        if (logic5 != null) {
-          Text(text = "Test Image5:")
-          Image(
-            bitmap = logic5!!.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(12.dp)
-          )
-        } else {
-          Text(text = "No test image available", modifier = Modifier.padding(12.dp))
-        }
+        Text(text = "Select appropriate card:")
+        Spacer(modifier = Modifier.padding(15.dp))
+        SelectableCard(
+          bitmap = logic1
+        )
+        Spacer(modifier = Modifier.padding(15.dp))
+        SelectableCard(
+          bitmap = logic2
+        )
+        Spacer(modifier = Modifier.padding(15.dp))
+        SelectableCard(
+          bitmap = logic3
+        )
+        Spacer(modifier = Modifier.padding(15.dp))
+        SelectableCard(
+          bitmap = logic4
+        )
+        Spacer(modifier = Modifier.padding(15.dp))
+        SelectableCard(
+          bitmap = logic5
+        )
       }
     }
   }

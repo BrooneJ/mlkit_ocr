@@ -90,11 +90,19 @@ class OcrViewModel(
         }
         val edgesEnforce = enforceMinCellWidth(edges, minW)
         val edgesFromWidth = detectEdgesInRow(bitmap, headerBand, RowType.Header)
-        _logic1.value = drawColumnDebug(bitmap, headerBand, edges)
-        _logic2.value = drawColumnDebug(bitmap, headerBand, edgesFromPeaks)
-        _logic3.value = drawColumnDebug(bitmap, headerBand, edgesFromWidth)
-        _logic4.value = drawColumnDebug(bitmap, headerBand, edgesFromValleys)
-        _logic5.value = drawColumnDebug(bitmap, headerBand, edgesEnforce)
+
+        Log.d("edges", "Detected column boundaries (valleys): $edgesFromValleys")
+        Log.d("edges", "Detected column boundaries (width): $edgesFromWidth")
+        Log.d("edges", "Detected column boundaries (adaptive): $edges")
+        Log.d("edges", "Detected column boundaries (enforced): $edgesEnforce")
+        _logic1.value = cropToBitmap(drawColumnDebug(bitmap, headerBand, edges), headerBand)
+        _logic2.value =
+          cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesFromPeaks), headerBand)
+        _logic3.value =
+          cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesFromWidth), headerBand)
+        _logic4.value =
+          cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesFromValleys), headerBand)
+        _logic5.value = cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesEnforce), headerBand)
       }
 
       val testWord = recognizeText(_headerPreview.value ?: return@launch)
