@@ -18,13 +18,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SelectableCard(
   modifier: Modifier = Modifier,
-  bitmap: Bitmap?
+  bitmap: Bitmap?,
+  onClick: () -> Unit,
 ) {
   if (bitmap != null) {
     Card(
       shape = RoundedCornerShape(10.dp),
       elevation = CardDefaults.cardElevation(12.dp),
       colors = CardDefaults.cardColors(Color.White),
+      onClick = onClick
     ) {
       Column(
         modifier = Modifier

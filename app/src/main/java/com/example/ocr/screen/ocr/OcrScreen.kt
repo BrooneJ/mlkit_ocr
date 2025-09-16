@@ -79,23 +79,48 @@ fun OcrScreen(
         Text(text = "Select appropriate card:")
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic1
+          bitmap = logic1,
+          onClick = {
+            viewModel.onAction(
+              OcrAction.CardChosen(OcrType.ADAPTIVE)
+            )
+          }
         )
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic2
+          bitmap = logic2,
+          onClick = {
+            viewModel.onAction(
+              OcrAction.CardChosen(OcrType.FROMPEAK)
+            )
+          }
         )
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic3
+          bitmap = logic3,
+          onClick = {
+            viewModel.onAction(
+              OcrAction.CardChosen(OcrType.FROMWIDTH)
+            )
+          }
         )
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic4
+          bitmap = logic4,
+          onClick = {
+            viewModel.onAction(
+              OcrAction.CardChosen(OcrType.FROMVALLEY)
+            )
+          }
         )
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic5
+          bitmap = logic5,
+          onClick = {
+            viewModel.onAction(
+              OcrAction.CardChosen(OcrType.ENFORCE)
+            )
+          }
         )
       }
     }

@@ -58,6 +58,20 @@ class OcrViewModel(
   private val _logic5 = MutableStateFlow<Bitmap?>(null)
   val logic5 = _logic5.asStateFlow()
 
+  fun onAction(action: OcrAction) {
+    when (action) {
+      is OcrAction.CardChosen -> {
+        when (action.type) {
+          OcrType.ADAPTIVE -> Log.d("OcrViewModel", "Adaptive selected")
+          OcrType.FROMVALLEY -> Log.d("OcrViewModel", "Valley selected")
+          OcrType.FROMPEAK -> Log.d("OcrViewModel", "Peak selected")
+          OcrType.FROMWIDTH -> Log.d("OcrViewModel", "Width selected")
+          OcrType.ENFORCE -> Log.d("OcrViewModel", "Enforce selected")
+        }
+      }
+    }
+  }
+
   fun processImage(context: Context) {
     val uri = targetUri ?: return
     viewModelScope.launch {
