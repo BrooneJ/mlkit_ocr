@@ -18,6 +18,7 @@ import com.example.ocr.screen.ocr.utils.cropToBitmap
 import com.example.ocr.screen.ocr.utils.detectEdgesInRow
 import com.example.ocr.screen.ocr.utils.drawColumnDebug
 import com.example.ocr.screen.ocr.utils.enforceMinCellWidth
+import com.example.ocr.screen.ocr.utils.ensureMinForMlKit
 import com.example.ocr.screen.ocr.utils.headerBandFromWords
 import com.example.ocr.screen.ocr.utils.minCellWidth
 import com.example.ocr.screen.ocr.utils.pickColumnBoundaries
@@ -26,6 +27,7 @@ import com.example.ocr.screen.ocr.utils.recognizeText
 import com.example.ocr.screen.ocr.utils.recognizeWordsFromUri
 import com.example.ocr.screen.ocr.utils.roughCharWidth
 import com.example.ocr.screen.ocr.utils.smooth
+import com.example.ocr.screen.ocr.utils.splitHeadBandByEdges
 import com.example.ocr.screen.ocr.utils.verticalProjection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,15 +62,112 @@ class OcrViewModel(
 
   private val _edges = MutableStateFlow<ColumnEdges?>(null)
 
+  private val _dateCells = MutableStateFlow<List<Bitmap>>(emptyList())
+  val dateCells = _dateCells.asStateFlow()
+
   fun onAction(action: OcrAction) {
     when (action) {
       is OcrAction.CardChosen -> {
         when (action.type) {
-          OcrType.ADAPTIVE -> Log.d("OcrViewModel", "Adaptive selected")
-          OcrType.FROMVALLEY -> Log.d("OcrViewModel", "Valley selected")
-          OcrType.FROMPEAK -> Log.d("OcrViewModel", "Peak selected")
-          OcrType.FROMWIDTH -> Log.d("OcrViewModel", "Width selected")
-          OcrType.ENFORCE -> Log.d("OcrViewModel", "Enforce selected")
+          OcrType.ADAPTIVE -> {
+            if (_headerPreview.value == null) return
+            if (_edges.value?.adaptive.isNullOrEmpty()) return
+            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.adaptive)
+            viewModelScope.launch {
+              val texts = _dateCells.value.map {
+                if (it.width < 32 || it.height < 32) {
+                  val ensuredText = ensureMinForMlKit(it)
+                  recognizeText(ensuredText)
+                } else {
+                  recognizeText(it)
+                }
+              }
+
+              texts.map {
+                Log.d("OcrViewModel", "Text: ${it.text}")
+              }
+            }
+          }
+
+          OcrType.FROMVALLEY -> {
+            if (_headerPreview.value == null) return
+            if (_edges.value?.valleys.isNullOrEmpty()) return
+            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.valleys)
+            viewModelScope.launch {
+              val texts = _dateCells.value.map {
+                if (it.width < 32 || it.height < 32) {
+                  val ensuredText = ensureMinForMlKit(it)
+                  recognizeText(ensuredText)
+                } else {
+                  recognizeText(it)
+                }
+              }
+
+              texts.map {
+                Log.d("OcrViewModel", "Text: ${it.text}")
+              }
+            }
+          }
+
+          OcrType.FROMPEAK -> {
+            if (_headerPreview.value == null) return
+            if (_edges.value?.peaks.isNullOrEmpty()) return
+            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.peaks)
+            viewModelScope.launch {
+              val texts = _dateCells.value.map {
+                if (it.width < 32 || it.height < 32) {
+                  val ensuredText = ensureMinForMlKit(it)
+                  recognizeText(ensuredText)
+                } else {
+                  recognizeText(it)
+                }
+              }
+
+              texts.map {
+                Log.d("OcrViewModel", "Text: ${it.text}")
+              }
+            }
+          }
+
+          OcrType.FROMWIDTH -> {
+            if (_headerPreview.value == null) return
+            if (_edges.value?.width.isNullOrEmpty()) return
+            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.width)
+            viewModelScope.launch {
+              val texts = _dateCells.value.map {
+                if (it.width < 32 || it.height < 32) {
+                  val ensuredText = ensureMinForMlKit(it)
+                  recognizeText(ensuredText)
+                } else {
+                  recognizeText(it)
+                }
+              }
+
+              texts.map {
+                Log.d("OcrViewModel", "Text: ${it.text}")
+              }
+            }
+          }
+
+          OcrType.ENFORCE -> {
+            if (_headerPreview.value == null) return
+            if (_edges.value?.enforced.isNullOrEmpty()) return
+            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.enforced)
+            viewModelScope.launch {
+              val texts = _dateCells.value.map {
+                if (it.width < 32 || it.height < 32) {
+                  val ensuredText = ensureMinForMlKit(it)
+                  recognizeText(ensuredText)
+                } else {
+                  recognizeText(it)
+                }
+              }
+
+              texts.map {
+                Log.d("OcrViewModel", "Text: ${it.text}")
+              }
+            }
+          }
         }
       }
     }

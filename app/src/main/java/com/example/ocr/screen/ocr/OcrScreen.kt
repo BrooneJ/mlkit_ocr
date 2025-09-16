@@ -2,6 +2,7 @@
 
 package com.example.ocr.screen.ocr
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +49,8 @@ fun OcrScreen(
   val logic3 by viewModel.logic3.collectAsStateWithLifecycle()
   val logic4 by viewModel.logic4.collectAsStateWithLifecycle()
   val logic5 by viewModel.logic5.collectAsStateWithLifecycle()
+
+  val dateCells by viewModel.dateCells.collectAsStateWithLifecycle()
 
   if (text == null) {
     Text("No Text")
@@ -122,6 +126,14 @@ fun OcrScreen(
             )
           }
         )
+
+        Spacer(modifier = Modifier.padding(15.dp))
+        Text(text = "Detected date cells:")
+        Spacer(modifier = Modifier.padding(8.dp))
+        dateCells.forEach { cellBitmap ->
+          Image(cellBitmap.asImageBitmap(), contentDescription = null)
+          Spacer(modifier = Modifier.padding(8.dp))
+        }
       }
     }
   }

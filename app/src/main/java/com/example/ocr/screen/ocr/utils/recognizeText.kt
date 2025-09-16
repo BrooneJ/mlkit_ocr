@@ -559,6 +559,18 @@ fun drawColumnDebug(src: Bitmap, roi: RectI, edgesAbsX: List<Int>): Bitmap {
   return bmp
 }
 
+fun splitHeadBandByEdges(header: Bitmap, edges: List<Int>): List<Bitmap> {
+  val cells = mutableListOf<Bitmap>()
+  for (i in 0 until edges.size - 1) {
+    val x1 = edges[i].coerceIn(0, header.width)
+    val x2 = edges[i + 1].coerceIn(0, header.width)
+    if (x2 - x1 < 8) continue
+    val cell = Bitmap.createBitmap(header, x1, 0, x2 - x1, header.height)
+    cells += cell
+  }
+  return cells
+}
+
 fun minCellWidth(row: RectI, charPx: Int, expectedCols: Int? = null): Int {
   val byChar = (1.6f * charPx).toInt()                // ~1.4–1.8 × char width
   val byPercent = (0.03f * row.width).toInt()         // ~3% of row width (scale with resolution)
@@ -570,4 +582,29 @@ fun minCellWidth(row: RectI, charPx: Int, expectedCols: Int? = null): Int {
   val base = maxOf(byChar, byPercent, 24)
   return if (byLayout != null) minOf(base, (row.width / expectedCols)/*upper guard*/)
   else base
+}
+
+fun ensureMinForMlKit(src: Bitmap, minW: Int = 32, minH: Int = 32): Bitmap {
+  var bmp = src
+  // If extremely small, scale up proportionally first
+  if (bmp.width < minW || bmp.height < minH) {
+    val sx = minW.toFloat() / bmp.width
+    val sy = minH.toFloat() / bmp.height
+    val s = maxOf(sx, sy) // keep aspect
+    val tw = (bmp.width * s).toInt().coerceAtLeast(minW)
+    val th = (bmp.height * s).toInt().coerceAtLeast(minH)
+    bmp = Bitmap.createScaledBitmap(bmp, tw, th, true)
+  }
+  if (bmp.width >= minW && bmp.height >= minH) return bmp
+
+  // Letterbox center on white canvas
+  val outW = maxOf(minW, bmp.width)
+  val outH = maxOf(minH, bmp.height)
+  val out = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
+  val c = android.graphics.Canvas(out)
+  c.drawColor(android.graphics.Color.WHITE)
+  val left = ((outW - bmp.width) / 2f)
+  val top = ((outH - bmp.height) / 2f)
+  c.drawBitmap(bmp, left, top, null)
+  return out
 }
