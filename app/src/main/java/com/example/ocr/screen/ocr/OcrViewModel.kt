@@ -58,6 +58,8 @@ class OcrViewModel(
   private val _logic5 = MutableStateFlow<Bitmap?>(null)
   val logic5 = _logic5.asStateFlow()
 
+  private val _edges = MutableStateFlow<ColumnEdges?>(null)
+
   fun onAction(action: OcrAction) {
     when (action) {
       is OcrAction.CardChosen -> {
@@ -104,6 +106,15 @@ class OcrViewModel(
         }
         val edgesEnforce = enforceMinCellWidth(edges, minW)
         val edgesFromWidth = detectEdgesInRow(bitmap, headerBand, RowType.Header)
+
+        _edges.value = ColumnEdges(
+          roi = headerBand,
+          valleys = edgesFromValleys,
+          peaks = edgesFromPeaks,
+          adaptive = edges,
+          width = edgesFromWidth,
+          enforced = edgesEnforce,
+        )
 
         Log.d("edges", "Detected column boundaries (valleys): $edgesFromValleys")
         Log.d("edges", "Detected column boundaries (width): $edgesFromWidth")
@@ -163,3 +174,12 @@ fun <T> cluster1D(
 
 val dateRegex = Regex("""^\d{1,2}/\d{1,2}$""")
 val weekdayRegex = Regex("""^[\(\（].+[\)\）]$""")
+
+data class ColumnEdges(
+  val roi: RectI,
+  val valleys: List<Int>,
+  val peaks: List<Int>,
+  val adaptive: List<Int>,
+  val width: List<Int>,
+  val enforced: List<Int>,
+)
