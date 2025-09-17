@@ -72,7 +72,7 @@ class OcrViewModel(
   private val _workCells = MutableStateFlow<List<Bitmap>>(emptyList())
   val workCells = _workCells.asStateFlow()
 
-  private val _scheduleMap = MutableStateFlow<Map<String, String>>(emptyMap())
+  private val _scheduleMap = MutableStateFlow<List<Pair<String, String>>>(emptyList())
 
   fun onAction(action: OcrAction) {
     when (action) {
@@ -87,12 +87,14 @@ class OcrViewModel(
             viewModelScope.launch {
               val texts = _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
-                  val ensuredText = ensureMinForMlKit(it)
-                  val result = recognizeText(ensuredText)
-                  _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                  return@forEach
                 } else {
                   val result = recognizeText(it)
-                  _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                  if (result.text == "") {
+                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                  } else {
+                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                  }
                 }
               }
 
@@ -106,18 +108,21 @@ class OcrViewModel(
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.valleys)
             _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.valleys)
             viewModelScope.launch {
-              val texts = _dateCells.value.map {
+              _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
                   val ensuredText = ensureMinForMlKit(it)
                   recognizeText(ensuredText)
                 } else {
-                  recognizeText(it)
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                  } else {
+                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                  }
                 }
               }
 
-              texts.map {
-                Log.d("OcrViewModel", "Text: ${it.text}")
-              }
+              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
             }
           }
 
@@ -127,18 +132,21 @@ class OcrViewModel(
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.peaks)
             _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.peaks)
             viewModelScope.launch {
-              val texts = _dateCells.value.map {
+              _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
                   val ensuredText = ensureMinForMlKit(it)
                   recognizeText(ensuredText)
                 } else {
-                  recognizeText(it)
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                  } else {
+                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                  }
                 }
               }
 
-              texts.map {
-                Log.d("OcrViewModel", "Text: ${it.text}")
-              }
+              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
             }
           }
 
@@ -148,18 +156,21 @@ class OcrViewModel(
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.width)
             _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.width)
             viewModelScope.launch {
-              val texts = _dateCells.value.map {
+              _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
                   val ensuredText = ensureMinForMlKit(it)
                   recognizeText(ensuredText)
                 } else {
-                  recognizeText(it)
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                  } else {
+                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                  }
                 }
               }
 
-              texts.map {
-                Log.d("OcrViewModel", "Text: ${it.text}")
-              }
+              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
             }
           }
 
@@ -169,18 +180,24 @@ class OcrViewModel(
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.enforced)
             _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.enforced)
             viewModelScope.launch {
-              val texts = _dateCells.value.map {
+              val texts = _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
                   val ensuredText = ensureMinForMlKit(it)
                   recognizeText(ensuredText)
                 } else {
-                  recognizeText(it)
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                  } else {
+                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                  }
                 }
               }
 
-              texts.map {
-                Log.d("OcrViewModel", "Text: ${it.text}")
-              }
+//              texts.map {
+//                Log.d("OcrViewModel", "Text: ${it.text}")
+//              }
+              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
             }
           }
         }
