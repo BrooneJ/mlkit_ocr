@@ -72,7 +72,7 @@ class OcrViewModel(
   private val _workCells = MutableStateFlow<List<Bitmap>>(emptyList())
   val workCells = _workCells.asStateFlow()
 
-  private val _scheduleMap = MutableStateFlow<List<Pair<String, String>>>(emptyList())
+  private val _schedulePair = MutableStateFlow<List<Pair<String, String>>>(emptyList())
 
   fun onAction(action: OcrAction) {
     when (action) {
@@ -85,20 +85,20 @@ class OcrViewModel(
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.adaptive)
             _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.adaptive)
             viewModelScope.launch {
-              val texts = _dateCells.value.forEach {
+              _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
                   return@forEach
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                    _schedulePair.value = _schedulePair.value + ("??" to "")
                   } else {
-                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                    _schedulePair.value = _schedulePair.value + (result.text to "")
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
+              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
             }
           }
 
@@ -115,14 +115,14 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                    _schedulePair.value = _schedulePair.value + ("??" to "")
                   } else {
-                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                    _schedulePair.value = _schedulePair.value + (result.text to "")
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
+              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
             }
           }
 
@@ -139,14 +139,14 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                    _schedulePair.value = _schedulePair.value + ("??" to "")
                   } else {
-                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                    _schedulePair.value = _schedulePair.value + (result.text to "")
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
+              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
             }
           }
 
@@ -163,14 +163,14 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                    _schedulePair.value = _schedulePair.value + ("??" to "")
                   } else {
-                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                    _schedulePair.value = _schedulePair.value + (result.text to "")
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
+              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
             }
           }
 
@@ -187,17 +187,14 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _scheduleMap.value = _scheduleMap.value + ("??" to "")
+                    _schedulePair.value = _schedulePair.value + ("??" to "")
                   } else {
-                    _scheduleMap.value = _scheduleMap.value + (result.text to "")
+                    _schedulePair.value = _schedulePair.value + (result.text to "")
                   }
                 }
               }
-
-//              texts.map {
-//                Log.d("OcrViewModel", "Text: ${it.text}")
-//              }
-              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
+              
+              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
             }
           }
         }
