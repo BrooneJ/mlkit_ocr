@@ -14,6 +14,7 @@ import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
 import com.example.ocr.screen.ocr.utils.RectI
 import com.example.ocr.screen.ocr.utils.RowType
+import com.example.ocr.screen.ocr.utils.bodyBandFromWords
 import com.example.ocr.screen.ocr.utils.cropToBitmap
 import com.example.ocr.screen.ocr.utils.detectEdgesInRow
 import com.example.ocr.screen.ocr.utils.drawColumnDebug
@@ -45,6 +46,9 @@ class OcrViewModel(
   private val _headerPreview = MutableStateFlow<Bitmap?>(null)
   val headerPreview = _headerPreview.asStateFlow()
 
+  private val _bodyPreview = MutableStateFlow<Bitmap?>(null)
+  val bodyPreview = _bodyPreview.asStateFlow()
+
   private val _logic1 = MutableStateFlow<Bitmap?>(null)
   val logic1 = _logic1.asStateFlow()
 
@@ -65,27 +69,34 @@ class OcrViewModel(
   private val _dateCells = MutableStateFlow<List<Bitmap>>(emptyList())
   val dateCells = _dateCells.asStateFlow()
 
+  private val _workCells = MutableStateFlow<List<Bitmap>>(emptyList())
+  val workCells = _workCells.asStateFlow()
+
+  private val _scheduleMap = MutableStateFlow<Map<String, String>>(emptyMap())
+
   fun onAction(action: OcrAction) {
     when (action) {
       is OcrAction.CardChosen -> {
         when (action.type) {
           OcrType.ADAPTIVE -> {
             if (_headerPreview.value == null) return
+            if (_bodyPreview.value == null) return
             if (_edges.value?.adaptive.isNullOrEmpty()) return
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.adaptive)
+            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.adaptive)
             viewModelScope.launch {
-              val texts = _dateCells.value.map {
+              val texts = _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
                   val ensuredText = ensureMinForMlKit(it)
-                  recognizeText(ensuredText)
+                  val result = recognizeText(ensuredText)
+                  _scheduleMap.value = _scheduleMap.value + (result.text to "")
                 } else {
-                  recognizeText(it)
+                  val result = recognizeText(it)
+                  _scheduleMap.value = _scheduleMap.value + (result.text to "")
                 }
               }
 
-              texts.map {
-                Log.d("OcrViewModel", "Text: ${it.text}")
-              }
+              Log.d("OcrViewModel", "Schedule map: ${_scheduleMap.value}")
             }
           }
 
@@ -93,6 +104,7 @@ class OcrViewModel(
             if (_headerPreview.value == null) return
             if (_edges.value?.valleys.isNullOrEmpty()) return
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.valleys)
+            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.valleys)
             viewModelScope.launch {
               val texts = _dateCells.value.map {
                 if (it.width < 32 || it.height < 32) {
@@ -113,6 +125,7 @@ class OcrViewModel(
             if (_headerPreview.value == null) return
             if (_edges.value?.peaks.isNullOrEmpty()) return
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.peaks)
+            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.peaks)
             viewModelScope.launch {
               val texts = _dateCells.value.map {
                 if (it.width < 32 || it.height < 32) {
@@ -133,6 +146,7 @@ class OcrViewModel(
             if (_headerPreview.value == null) return
             if (_edges.value?.width.isNullOrEmpty()) return
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.width)
+            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.width)
             viewModelScope.launch {
               val texts = _dateCells.value.map {
                 if (it.width < 32 || it.height < 32) {
@@ -153,6 +167,7 @@ class OcrViewModel(
             if (_headerPreview.value == null) return
             if (_edges.value?.enforced.isNullOrEmpty()) return
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.enforced)
+            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.enforced)
             viewModelScope.launch {
               val texts = _dateCells.value.map {
                 if (it.width < 32 || it.height < 32) {
@@ -228,6 +243,12 @@ class OcrViewModel(
           cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesFromValleys), headerBand)
         _logic5.value = cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesEnforce), headerBand)
       }
+
+      val bodyBand: RectI =
+        bodyBandFromWords(words, headerBand, imageWidth = bitmap.width, imageHeight = bitmap.height)
+          ?: return@launch
+
+      _bodyPreview.value = cropToBitmap(bitmap, bodyBand)
 
       val testWord = recognizeText(_headerPreview.value ?: return@launch)
       Log.d("OcrViewModel", "Test recognized text: $testWord")

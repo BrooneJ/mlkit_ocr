@@ -44,6 +44,7 @@ fun OcrScreen(
 
   val text by viewModel.text.collectAsStateWithLifecycle()
   val headerBitmap by viewModel.headerPreview.collectAsStateWithLifecycle()
+  val bodyBitmap by viewModel.bodyPreview.collectAsStateWithLifecycle()
   val logic1 by viewModel.logic1.collectAsStateWithLifecycle()
   val logic2 by viewModel.logic2.collectAsStateWithLifecycle()
   val logic3 by viewModel.logic3.collectAsStateWithLifecycle()
@@ -51,6 +52,7 @@ fun OcrScreen(
   val logic5 by viewModel.logic5.collectAsStateWithLifecycle()
 
   val dateCells by viewModel.dateCells.collectAsStateWithLifecycle()
+  val workCells by viewModel.workCells.collectAsStateWithLifecycle()
 
   if (text == null) {
     Text("No Text")
@@ -81,6 +83,14 @@ fun OcrScreen(
 
       ) {
         Text(text = "Select appropriate card:")
+
+        if (headerBitmap != null) {
+          Image(headerBitmap!!.asImageBitmap(), contentDescription = null)
+        }
+        if (bodyBitmap != null) {
+          Image(bodyBitmap!!.asImageBitmap(), contentDescription = null)
+        }
+
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
           bitmap = logic1,
@@ -131,6 +141,11 @@ fun OcrScreen(
         Text(text = "Detected date cells:")
         Spacer(modifier = Modifier.padding(8.dp))
         dateCells.forEach { cellBitmap ->
+          Image(cellBitmap.asImageBitmap(), contentDescription = null)
+          Spacer(modifier = Modifier.padding(8.dp))
+        }
+        Spacer(modifier = Modifier.padding(15.dp))
+        workCells.forEach { cellBitmap ->
           Image(cellBitmap.asImageBitmap(), contentDescription = null)
           Spacer(modifier = Modifier.padding(8.dp))
         }
