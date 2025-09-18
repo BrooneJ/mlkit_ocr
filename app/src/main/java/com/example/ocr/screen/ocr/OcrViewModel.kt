@@ -229,7 +229,7 @@ class OcrViewModel(
             _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.enforced)
             _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.enforced)
             viewModelScope.launch {
-              val texts = _dateCells.value.forEach {
+              _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
                   return@forEach
                 } else {
