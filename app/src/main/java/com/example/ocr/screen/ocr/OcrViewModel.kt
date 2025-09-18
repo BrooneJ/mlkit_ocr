@@ -19,7 +19,6 @@ import com.example.ocr.screen.ocr.utils.cropToBitmap
 import com.example.ocr.screen.ocr.utils.detectEdgesInRow
 import com.example.ocr.screen.ocr.utils.drawColumnDebug
 import com.example.ocr.screen.ocr.utils.enforceMinCellWidth
-import com.example.ocr.screen.ocr.utils.ensureMinForMlKit
 import com.example.ocr.screen.ocr.utils.headerBandFromWords
 import com.example.ocr.screen.ocr.utils.minCellWidth
 import com.example.ocr.screen.ocr.utils.pickColumnBoundaries
@@ -110,8 +109,7 @@ class OcrViewModel(
             viewModelScope.launch {
               _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
-                  val ensuredText = ensureMinForMlKit(it)
-                  recognizeText(ensuredText)
+                  return@forEach
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
@@ -134,8 +132,7 @@ class OcrViewModel(
             viewModelScope.launch {
               _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
-                  val ensuredText = ensureMinForMlKit(it)
-                  recognizeText(ensuredText)
+                  return@forEach
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
@@ -158,8 +155,7 @@ class OcrViewModel(
             viewModelScope.launch {
               _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
-                  val ensuredText = ensureMinForMlKit(it)
-                  recognizeText(ensuredText)
+                  return@forEach
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
@@ -182,8 +178,7 @@ class OcrViewModel(
             viewModelScope.launch {
               val texts = _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
-                  val ensuredText = ensureMinForMlKit(it)
-                  recognizeText(ensuredText)
+                  return@forEach
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
@@ -193,7 +188,7 @@ class OcrViewModel(
                   }
                 }
               }
-              
+
               Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
             }
           }
