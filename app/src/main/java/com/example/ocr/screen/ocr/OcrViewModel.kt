@@ -74,6 +74,8 @@ class OcrViewModel(
   private val _dateList = MutableStateFlow<List<String>>(emptyList())
   private val _scheduleList = MutableStateFlow<List<String>>(emptyList())
 
+  private val _resultMap = MutableStateFlow<Map<String, String>>(emptyMap())
+
   fun onAction(action: OcrAction) {
     when (action) {
       is OcrAction.CardChosen -> {
@@ -111,7 +113,8 @@ class OcrViewModel(
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
+              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
 
@@ -147,7 +150,8 @@ class OcrViewModel(
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
+              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
 
@@ -183,7 +187,8 @@ class OcrViewModel(
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
+              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
 
@@ -219,7 +224,8 @@ class OcrViewModel(
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
+              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
 
@@ -255,7 +261,8 @@ class OcrViewModel(
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
+              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
         }
