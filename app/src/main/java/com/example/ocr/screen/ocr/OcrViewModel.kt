@@ -71,7 +71,7 @@ class OcrViewModel(
   private val _workCells = MutableStateFlow<List<Bitmap>>(emptyList())
   val workCells = _workCells.asStateFlow()
 
-  private val _schedulePair = MutableStateFlow<List<Pair<String, String>>>(emptyList())
+  private val _dateList = MutableStateFlow<List<String>>(emptyList())
 
   fun onAction(action: OcrAction) {
     when (action) {
@@ -90,14 +90,24 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _schedulePair.value = _schedulePair.value + ("??" to "")
+                    _dateList.value = _dateList.value + "??"
                   } else {
-                    _schedulePair.value = _schedulePair.value + (result.text to "")
+                    _dateList.value = _dateList.value + result.text
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
+              _workCells.value.forEach {
+                if (it.width < 32 || it.height < 32) {
+                  return@forEach
+                } else {
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                  }
+                }
+              }
+
+              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
             }
           }
 
@@ -113,14 +123,14 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _schedulePair.value = _schedulePair.value + ("??" to "")
+                    _dateList.value = _dateList.value + "??"
                   } else {
-                    _schedulePair.value = _schedulePair.value + (result.text to "")
+                    _dateList.value = _dateList.value + result.text
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
+              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
             }
           }
 
@@ -136,14 +146,14 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _schedulePair.value = _schedulePair.value + ("??" to "")
+                    _dateList.value = _dateList.value + "??"
                   } else {
-                    _schedulePair.value = _schedulePair.value + (result.text to "")
+                    _dateList.value = _dateList.value + result.text
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
+              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
             }
           }
 
@@ -159,14 +169,14 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _schedulePair.value = _schedulePair.value + ("??" to "")
+                    _dateList.value = _dateList.value + "??"
                   } else {
-                    _schedulePair.value = _schedulePair.value + (result.text to "")
+                    _dateList.value = _dateList.value + result.text
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
+              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
             }
           }
 
@@ -182,14 +192,14 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
-                    _schedulePair.value = _schedulePair.value + ("??" to "")
+                    _dateList.value = _dateList.value + "??"
                   } else {
-                    _schedulePair.value = _schedulePair.value + (result.text to "")
+                    _dateList.value = _dateList.value + result.text
                   }
                 }
               }
 
-              Log.d("OcrViewModel", "Schedule map: ${_schedulePair.value}")
+              Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
             }
           }
         }
