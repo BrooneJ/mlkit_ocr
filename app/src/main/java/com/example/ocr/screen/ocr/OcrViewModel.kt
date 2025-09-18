@@ -72,6 +72,7 @@ class OcrViewModel(
   val workCells = _workCells.asStateFlow()
 
   private val _dateList = MutableStateFlow<List<String>>(emptyList())
+  private val _scheduleList = MutableStateFlow<List<String>>(emptyList())
 
   fun onAction(action: OcrAction) {
     when (action) {
@@ -103,6 +104,9 @@ class OcrViewModel(
                 } else {
                   val result = recognizeText(it)
                   if (result.text == "") {
+                    _scheduleList.value = _scheduleList.value + "??"
+                  } else {
+                    _scheduleList.value = _scheduleList.value + result.text
                   }
                 }
               }
@@ -130,6 +134,19 @@ class OcrViewModel(
                 }
               }
 
+              _workCells.value.forEach {
+                if (it.width < 32 || it.height < 32) {
+                  return@forEach
+                } else {
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                    _scheduleList.value = _scheduleList.value + "??"
+                  } else {
+                    _scheduleList.value = _scheduleList.value + result.text
+                  }
+                }
+              }
+
               Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
             }
           }
@@ -149,6 +166,19 @@ class OcrViewModel(
                     _dateList.value = _dateList.value + "??"
                   } else {
                     _dateList.value = _dateList.value + result.text
+                  }
+                }
+              }
+
+              _workCells.value.forEach {
+                if (it.width < 32 || it.height < 32) {
+                  return@forEach
+                } else {
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                    _scheduleList.value = _scheduleList.value + "??"
+                  } else {
+                    _scheduleList.value = _scheduleList.value + result.text
                   }
                 }
               }
@@ -176,6 +206,19 @@ class OcrViewModel(
                 }
               }
 
+              _workCells.value.forEach {
+                if (it.width < 32 || it.height < 32) {
+                  return@forEach
+                } else {
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                    _scheduleList.value = _scheduleList.value + "??"
+                  } else {
+                    _scheduleList.value = _scheduleList.value + result.text
+                  }
+                }
+              }
+
               Log.d("OcrViewModel", "Schedule map: ${_dateList.value}")
             }
           }
@@ -195,6 +238,19 @@ class OcrViewModel(
                     _dateList.value = _dateList.value + "??"
                   } else {
                     _dateList.value = _dateList.value + result.text
+                  }
+                }
+              }
+
+              _workCells.value.forEach {
+                if (it.width < 32 || it.height < 32) {
+                  return@forEach
+                } else {
+                  val result = recognizeText(it)
+                  if (result.text == "") {
+                    _scheduleList.value = _scheduleList.value + "??"
+                  } else {
+                    _scheduleList.value = _scheduleList.value + result.text
                   }
                 }
               }
