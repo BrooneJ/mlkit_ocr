@@ -74,7 +74,7 @@ class OcrViewModel(
   private val _dateList = MutableStateFlow<List<String>>(emptyList())
   private val _scheduleList = MutableStateFlow<List<String>>(emptyList())
 
-  private val _resultMap = MutableStateFlow<Map<String, String>>(emptyMap())
+  private val _resultMap = MutableStateFlow<List<Pair<String, String>>>(emptyList())
 
   fun onAction(action: OcrAction) {
     when (action) {
@@ -89,9 +89,11 @@ class OcrViewModel(
             viewModelScope.launch {
               _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
+                  Log.d("OcrViewModel", "Skipped too small date cell: ${it.width}x${it.height}")
                   return@forEach
                 } else {
                   val result = recognizeText(it)
+                  Log.d("OcrViewModel", "Recognized work cell text: ${result.text}")
                   if (result.text == "") {
                     _dateList.value = _dateList.value + "??"
                   } else {
@@ -102,9 +104,11 @@ class OcrViewModel(
 
               _workCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
+                  Log.d("OcrViewModel", "Skipped too small work cell: ${it.width}x${it.height}")
                   return@forEach
                 } else {
                   val result = recognizeText(it)
+                  Log.d("OcrViewModel", "Recognized work cell text: ${result.text}")
                   if (result.text == "") {
                     _scheduleList.value = _scheduleList.value + "??"
                   } else {
@@ -113,7 +117,9 @@ class OcrViewModel(
                 }
               }
 
-              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              Log.d("OcrViewModel", "Date list: ${_dateList.value}")
+              Log.d("OcrViewModel", "Schedule list: ${_scheduleList.value}")
+              _resultMap.value = _dateList.value.zip(_scheduleList.value)
               Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
@@ -150,7 +156,7 @@ class OcrViewModel(
                 }
               }
 
-              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              _resultMap.value = _dateList.value.zip(_scheduleList.value)
               Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
@@ -187,7 +193,7 @@ class OcrViewModel(
                 }
               }
 
-              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              _resultMap.value = _dateList.value.zip(_scheduleList.value)
               Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
@@ -224,7 +230,7 @@ class OcrViewModel(
                 }
               }
 
-              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              _resultMap.value = _dateList.value.zip(_scheduleList.value)
               Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
@@ -261,7 +267,7 @@ class OcrViewModel(
                 }
               }
 
-              _resultMap.value = _dateList.value.zip(_scheduleList.value).toMap()
+              _resultMap.value = _dateList.value.zip(_scheduleList.value)
               Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
           }
