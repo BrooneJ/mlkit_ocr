@@ -48,20 +48,20 @@ class OcrViewModel(
   private val _bodyPreview = MutableStateFlow<Bitmap?>(null)
   val bodyPreview = _bodyPreview.asStateFlow()
 
-  private val _logic1 = MutableStateFlow<Bitmap?>(null)
-  val logic1 = _logic1.asStateFlow()
+  private val _adaptive = MutableStateFlow<Bitmap?>(null)
+  val adaptive = _adaptive.asStateFlow()
 
-  private val _logic2 = MutableStateFlow<Bitmap?>(null)
-  val logic2 = _logic2.asStateFlow()
+  private val _fromPeak = MutableStateFlow<Bitmap?>(null)
+  val fromPeak = _fromPeak.asStateFlow()
 
-  private val _logic3 = MutableStateFlow<Bitmap?>(null)
-  val logic3 = _logic3.asStateFlow()
+  private val _fromWidth = MutableStateFlow<Bitmap?>(null)
+  val fromWidth = _fromWidth.asStateFlow()
 
-  private val _logic4 = MutableStateFlow<Bitmap?>(null)
-  val logic4 = _logic4.asStateFlow()
+  private val _fromValley = MutableStateFlow<Bitmap?>(null)
+  val fromValley = _fromValley.asStateFlow()
 
-  private val _logic5 = MutableStateFlow<Bitmap?>(null)
-  val logic5 = _logic5.asStateFlow()
+  private val _enforce = MutableStateFlow<Bitmap?>(null)
+  val enforce = _enforce.asStateFlow()
 
   private val _edges = MutableStateFlow<ColumnEdges?>(null)
 
@@ -307,14 +307,14 @@ class OcrViewModel(
           enforced = edgesEnforce,
         )
 
-        _logic1.value = cropToBitmap(drawColumnDebug(bitmap, headerBand, edges), headerBand)
-        _logic2.value =
+        _adaptive.value = cropToBitmap(drawColumnDebug(bitmap, headerBand, edges), headerBand)
+        _fromPeak.value =
           cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesFromPeaks), headerBand)
-        _logic3.value =
+        _fromWidth.value =
           cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesFromWidth), headerBand)
-        _logic4.value =
+        _fromValley.value =
           cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesFromValleys), headerBand)
-        _logic5.value = cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesEnforce), headerBand)
+        _enforce.value = cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesEnforce), headerBand)
       }
 
       val bodyBand: RectI =

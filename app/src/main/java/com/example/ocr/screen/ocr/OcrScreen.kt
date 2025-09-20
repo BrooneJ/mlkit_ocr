@@ -45,11 +45,11 @@ fun OcrScreen(
   val text by viewModel.text.collectAsStateWithLifecycle()
   val headerBitmap by viewModel.headerPreview.collectAsStateWithLifecycle()
   val bodyBitmap by viewModel.bodyPreview.collectAsStateWithLifecycle()
-  val logic1 by viewModel.logic1.collectAsStateWithLifecycle()
-  val logic2 by viewModel.logic2.collectAsStateWithLifecycle()
-  val logic3 by viewModel.logic3.collectAsStateWithLifecycle()
-  val logic4 by viewModel.logic4.collectAsStateWithLifecycle()
-  val logic5 by viewModel.logic5.collectAsStateWithLifecycle()
+  val adaptive by viewModel.adaptive.collectAsStateWithLifecycle()
+  val fromPeak by viewModel.fromPeak.collectAsStateWithLifecycle()
+  val fromWidth by viewModel.fromWidth.collectAsStateWithLifecycle()
+  val fromValley by viewModel.fromValley.collectAsStateWithLifecycle()
+  val enforce by viewModel.enforce.collectAsStateWithLifecycle()
 
   val dateCells by viewModel.dateCells.collectAsStateWithLifecycle()
   val workCells by viewModel.workCells.collectAsStateWithLifecycle()
@@ -93,7 +93,7 @@ fun OcrScreen(
 
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic1,
+          bitmap = adaptive,
           onClick = {
             viewModel.onAction(
               OcrAction.CardChosen(OcrType.ADAPTIVE)
@@ -102,7 +102,7 @@ fun OcrScreen(
         )
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic2,
+          bitmap = fromPeak,
           onClick = {
             viewModel.onAction(
               OcrAction.CardChosen(OcrType.FROMPEAK)
@@ -111,7 +111,7 @@ fun OcrScreen(
         )
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic3,
+          bitmap = fromWidth,
           onClick = {
             viewModel.onAction(
               OcrAction.CardChosen(OcrType.FROMWIDTH)
@@ -120,7 +120,7 @@ fun OcrScreen(
         )
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic4,
+          bitmap = fromValley,
           onClick = {
             viewModel.onAction(
               OcrAction.CardChosen(OcrType.FROMVALLEY)
@@ -129,7 +129,7 @@ fun OcrScreen(
         )
         Spacer(modifier = Modifier.padding(15.dp))
         SelectableCard(
-          bitmap = logic5,
+          bitmap = enforce,
           onClick = {
             viewModel.onAction(
               OcrAction.CardChosen(OcrType.ENFORCE)
