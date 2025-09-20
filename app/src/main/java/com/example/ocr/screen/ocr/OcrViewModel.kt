@@ -89,11 +89,9 @@ class OcrViewModel(
             viewModelScope.launch {
               _dateCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
-                  Log.d("OcrViewModel", "Skipped too small date cell: ${it.width}x${it.height}")
                   return@forEach
                 } else {
                   val result = recognizeText(it)
-                  Log.d("OcrViewModel", "Recognized work cell text: ${result.text}")
                   if (result.text == "") {
                     _dateList.value = _dateList.value + "??"
                   } else {
@@ -104,11 +102,9 @@ class OcrViewModel(
 
               _workCells.value.forEach {
                 if (it.width < 32 || it.height < 32) {
-                  Log.d("OcrViewModel", "Skipped too small work cell: ${it.width}x${it.height}")
                   return@forEach
                 } else {
                   val result = recognizeText(it)
-                  Log.d("OcrViewModel", "Recognized work cell text: ${result.text}")
                   if (result.text == "") {
                     _scheduleList.value = _scheduleList.value + "??"
                   } else {
@@ -117,8 +113,6 @@ class OcrViewModel(
                 }
               }
 
-              Log.d("OcrViewModel", "Date list: ${_dateList.value}")
-              Log.d("OcrViewModel", "Schedule list: ${_scheduleList.value}")
               _resultMap.value = _dateList.value.zip(_scheduleList.value)
               Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
             }
@@ -285,23 +279,18 @@ class OcrViewModel(
         Log.v("OcrViewModel", "Word: '${it.text}' @(${it.left},${it.top},${it.right},${it.bottom})")
       }
       val headerBand: RectI? = headerBandFromWords(words, imageWidth = bitmap.width)
-      Log.d("HeaderBand", "Detected header band: $headerBand")
 
       if (headerBand == null) return@launch
       _headerPreview.value = cropToBitmap(bitmap, headerBand)
 
       if (_headerPreview.value != null) {
         val proj = verticalProjection(_headerPreview.value!!, headerBand)
-        Log.d("VerticalProjection", "Vertical projection: $proj")
         val r = roughCharWidth(headerBand)
-        Log.d("RoughCharWidth", "Rough char width: $r")
         val smoothed = smooth(proj, r)
-        Log.d("ProjectionSmoothing", "Smoothed projection: $smoothed")
         val minW = minCellWidth(headerBand, r)
 
         val edgesFromValleys = pickColumnBoundaries(smoothed, headerBand.width, r)
         val edgesFromPeaks = pickColumnBoundariesRobust(proj, headerBand.width, r, false)
-        Log.d("ColumnBoundaries", "Detected column boundaries (robust): $edgesFromPeaks")
         val charW = (headerBand.height * 0.6f).toInt().coerceAtLeast(8)
         val edges = pickColumnBoundariesAdaptive(proj, headerBand.width, charW, 40).map {
           it + headerBand.left
@@ -318,10 +307,6 @@ class OcrViewModel(
           enforced = edgesEnforce,
         )
 
-        Log.d("edges", "Detected column boundaries (valleys): $edgesFromValleys")
-        Log.d("edges", "Detected column boundaries (width): $edgesFromWidth")
-        Log.d("edges", "Detected column boundaries (adaptive): $edges")
-        Log.d("edges", "Detected column boundaries (enforced): $edgesEnforce")
         _logic1.value = cropToBitmap(drawColumnDebug(bitmap, headerBand, edges), headerBand)
         _logic2.value =
           cropToBitmap(drawColumnDebug(bitmap, headerBand, edgesFromPeaks), headerBand)
