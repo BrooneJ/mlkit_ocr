@@ -366,7 +366,6 @@ fun <T> cluster1D(
 }
 
 val dateRegex = Regex("""^\d{1,2}/\d{1,2}$""")
-val weekdayRegex = Regex("""^[\(\（].+[\)\）]$""")
 
 data class ColumnEdges(
   val roi: RectI,

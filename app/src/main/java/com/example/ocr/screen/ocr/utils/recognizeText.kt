@@ -1,10 +1,8 @@
 package com.example.ocr.screen.ocr.utils
 
 import android.graphics.Bitmap
-import android.util.Log
 import com.example.ocr.screen.ocr.cluster1D
 import com.example.ocr.screen.ocr.dateRegex
-import com.example.ocr.screen.ocr.weekdayRegex
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
@@ -18,26 +16,12 @@ data class RectI(val left: Int, val top: Int, val right: Int, val bottom: Int) {
   val height get() = bottom - top
 }
 
-data class RowBand(val index: Int, val rect: RectI)
-
-data class TableLayout(
-  val headerBand: RectI,
-  val columns: List<Int>,
-  val rows: List<RectI>,
-)
-
 suspend fun recognizeText(bitmap: Bitmap): Text {
   val input = InputImage.fromBitmap(bitmap, 0)
   val recognizer = TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build())
   return withContext(Dispatchers.IO) {
     Tasks.await(recognizer.process(input))
   }
-}
-
-fun headerBandOf(bitmap: Bitmap, ratio: Float = 0.15f): RectI {
-  val h = bitmap.height
-  val bandHeight = (h * ratio).toInt().coerceAtLeast(40)
-  return RectI(0, 0, bitmap.width, bandHeight.coerceAtMost(h))
 }
 
 private fun median(values: List<Float>): Float {
@@ -193,7 +177,6 @@ fun pickColumnBoundariesRobust(
 ): List<Int> {
   if (s.isEmpty()) return listOf(0, imgWidth)
 
-  // 1) 0..1 정규화
   val min = s.minOrNull()!!.toDouble()
   val max = s.maxOrNull()!!.toDouble()
   val range = (max - min).coerceAtLeast(1.0)
@@ -239,135 +222,6 @@ fun pickColumnBoundariesRobust(
   picked.sort()
   return buildList {
     add(0); addAll(picked); add(imgWidth)
-  }
-}
-
-fun roughCharWidthPx(bitmap: Bitmap, header: RectI): Int {
-  return (bitmap.width / 48f).toInt().coerceAtLeast(6)
-}
-
-suspend fun recoverLayout(bitmap: Bitmap): TableLayout {
-  val header = headerBandOf(bitmap)
-  val proj = withContext(Dispatchers.Default) { verticalProjection(bitmap, header) }
-  val charWidth = roughCharWidthPx(bitmap, header)
-  val smoothed = smooth(proj, radius = charWidth)
-
-  val a = pickColumnBoundaries(smoothed, header.width, charWidth)
-  val b = pickColumnBoundariesRobust(proj, header.width, charWidth)
-
-  val raw = if (b.size <= a.size) b else a
-
-  val columns = enforceMinCellWidth(raw, minWidth = 36)
-
-  return TableLayout(headerBand = header, columns = columns, rows = emptyList())
-}
-
-fun cropBitmap(src: Bitmap, rect: RectI): Bitmap =
-  Bitmap.createBitmap(src, rect.left, rect.top, rect.width, rect.height)
-
-fun clampRectToMin(r: RectI, imgW: Int, imgH: Int, minW: Int, minH: Int, pad: Int = 6): RectI {
-  var x1 = r.left
-  var x2 = r.right
-  var y1 = r.top
-  var y2 = r.bottom
-
-  if (x2 - x1 < minW) {
-    val need = minW - (x2 - x1)
-    x1 = (x1 - need / 2 - pad).coerceAtLeast(0)
-    x2 = (x2 + need / 2 + pad).coerceAtMost(imgW)
-  }
-  if (y2 - y1 < minH) {
-    val need = minH - (y2 - y1)
-    y1 = (y1 - need / 2 - pad).coerceAtLeast(0)
-    y2 = (y2 + need / 2 + pad).coerceAtMost(imgH)
-  }
-  return RectI(x1, y1, x2, y2)
-}
-
-suspend fun ocrCellText(bitmap: Bitmap, cell: RectI): String {
-  val minDim = 32
-  val safe = clampRectToMin(cell, bitmap.width, bitmap.height, minDim, minDim, pad = 6)
-  if (safe.width < minDim || safe.height < minDim) return "" // 최후의 방어
-  val sub = cropBitmap(bitmap, safe)
-  val text = recognizeText(sub).text
-  return text.replace("[()（）\\[\\]{}]".toRegex(), " ").trim()
-}
-
-data class ParsedDate(val month: Int, val day: Int)
-
-fun parseDate(text: String, defaultYear: Int, defaultMonth: Int): ParsedDate? {
-  val cleaned = text.replace("[^0-9/]".toRegex(), " ").trim()
-  val monthAndDay = "(\\d{1,2})\\s*/\\s*(\\d{1,2})".toRegex().find(cleaned)
-  if (monthAndDay != null) {
-    val (month, day) = monthAndDay.destructured
-    return ParsedDate(month.toInt(), day.toInt())
-  }
-  val dayOnly = "^\\s*(\\d{1,2})\\s*$".toRegex().find(cleaned)?.groupValues?.get(1)
-  if (dayOnly != null) return ParsedDate(defaultMonth, dayOnly.toInt())
-  return null
-}
-
-suspend fun extractScheduleJson(
-  bitmap: Bitmap,
-  defaultYear: Int,
-  defaultMonth: Int,
-  targetRowBand: RectI,
-): String {
-  val layout = recoverLayout(bitmap)
-  val header = layout.headerBand
-  val xs = layout.columns
-
-  data class Entry(val date: String, val shift: String)
-
-  val entries = mutableListOf<Entry>()
-  for (i in 0 until xs.size - 1) {
-    val x1 = xs[i];
-    val x2 = xs[i + 1]
-    if (x2 - x1 < 12) continue
-
-    val headerCell = RectI(x1, header.top, x2, header.bottom)
-    val headerText = ocrCellText(bitmap, headerCell)
-    val parsed = parseDate(headerText, defaultYear, defaultMonth) ?: continue
-
-    val shiftCell = RectI(x1, targetRowBand.top, x2, targetRowBand.bottom)
-    val shiftTextRaw = ocrCellText(bitmap, shiftCell)
-    val shiftText = shiftTextRaw
-      .replace("[月火水木金土日]".toRegex(), "")   // 요일 제거
-      .replace("\\s+".toRegex(), " ")
-      .trim()
-
-    val yyyy = defaultYear
-    val mm = parsed.month.toString().padStart(2, '0')
-    val dd = parsed.day.toString().padStart(2, '0')
-    entries += Entry(date = "$yyyy-$mm-$dd", shift = shiftText)
-  }
-
-  val jsonEntries = entries.joinToString(",") { """{"date":"${it.date}","shift":"${it.shift}"}""" }
-  return """{"year":$defaultYear,"month":$defaultMonth,"entries":[$jsonEntries]}"""
-}
-
-fun isHeaderWord(word: OcrWord): Boolean {
-  val text = word.text.replace(" ", "").trim()
-  return dateRegex.matches(text) || weekdayRegex.matches(text)
-}
-
-fun buildRowBands(
-  words: List<OcrWord>,
-  imageWidth: Int,
-  gapY: Float? = null,
-  padding: Int = 8,
-): List<RowBand> {
-  if (words.isEmpty()) return emptyList()
-
-  val avgHeight = (words.sumOf { it.h.toDouble() } / words.size).toFloat()
-  val gY = gapY ?: (avgHeight * 0.9f)
-
-  val rows = cluster1D(items = words, key = { it.cy }, gap = gY)
-  Log.d("RowBands", "Detected ${rows.size} rows with gapY=$gY (avgH=$avgHeight)")
-  return rows.mapIndexed { idx, group ->
-    val top = (group.minOf { it.top } - padding).coerceAtLeast(0)
-    val bottom = group.maxOf { it.bottom } + padding
-    RowBand(idx, RectI(0, top, imageWidth, bottom))
   }
 }
 
@@ -482,38 +336,6 @@ private fun pickBoundariesWithWidth(
   return buildList { add(0); addAll(picked); add(imgWidth) }
 }
 
-suspend fun ocrCell(bitmap: Bitmap, x1: Int, x2: Int, row: RectI): String {
-  val shrink = 3 // 그리드선 회피
-  val cell = RectI(
-    (x1 + shrink).coerceAtMost(x2),
-    row.top,
-    (x2 - shrink).coerceAtLeast(x1),
-    row.bottom
-  )
-  return ocrCellText(bitmap, cell) // 내부에서 32x32 보정
-}
-
-suspend fun readHeaderDates(
-  bitmap: Bitmap,
-  header: RectI,
-//  columns: List<Int>,           // recoverLayout()에서 나온 열 경계들
-  defaultYear: Int,
-  defaultMonth: Int
-): List<ParsedDate?> {
-  val columns = recoverLayout(bitmap).columns
-  val results = mutableListOf<ParsedDate?>()
-  for (i in 0 until columns.size - 1) {
-    val x1 = columns[i];
-    val x2 = columns[i + 1]
-    if (x2 - x1 < 12) {
-      results += null; continue
-    } // 너무 좁은 칸은 스킵
-    val text = ocrCell(bitmap, x1, x2, header)
-    results += parseDate(text, defaultYear, defaultMonth) // "9/1" 또는 "1" → (month, day)
-  }
-  return results
-}
-
 fun clampToBitmap(r: RectI, imageWidth: Int, imageHeight: Int): RectI {
   val x1 = r.left.coerceIn(0, imageWidth)
   val x2 = r.right.coerceIn(0, imageWidth)
@@ -582,29 +404,4 @@ fun minCellWidth(row: RectI, charPx: Int, expectedCols: Int? = null): Int {
   val base = maxOf(byChar, byPercent, 24)
   return if (byLayout != null) minOf(base, (row.width / expectedCols)/*upper guard*/)
   else base
-}
-
-fun ensureMinForMlKit(src: Bitmap, minW: Int = 32, minH: Int = 32): Bitmap {
-  var bmp = src
-  // If extremely small, scale up proportionally first
-  if (bmp.width < minW || bmp.height < minH) {
-    val sx = minW.toFloat() / bmp.width
-    val sy = minH.toFloat() / bmp.height
-    val s = maxOf(sx, sy) // keep aspect
-    val tw = (bmp.width * s).toInt().coerceAtLeast(minW)
-    val th = (bmp.height * s).toInt().coerceAtLeast(minH)
-    bmp = Bitmap.createScaledBitmap(bmp, tw, th, true)
-  }
-  if (bmp.width >= minW && bmp.height >= minH) return bmp
-
-  // Letterbox center on white canvas
-  val outW = maxOf(minW, bmp.width)
-  val outH = maxOf(minH, bmp.height)
-  val out = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
-  val c = android.graphics.Canvas(out)
-  c.drawColor(android.graphics.Color.WHITE)
-  val left = ((outW - bmp.width) / 2f)
-  val top = ((outH - bmp.height) / 2f)
-  c.drawBitmap(bmp, left, top, null)
-  return out
 }
