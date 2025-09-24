@@ -239,7 +239,7 @@ fun enforceMinCellWidth(edges: List<Int>, minWidth: Int): List<Int> {
   return out
 }
 
-fun roughCharWidth(row: RectI) = maxOf(row.height, 6) // 경험값
+fun roughCharWidth(row: RectI) = maxOf(row.height, 6)
 
 enum class RowType { Header, Body }
 
