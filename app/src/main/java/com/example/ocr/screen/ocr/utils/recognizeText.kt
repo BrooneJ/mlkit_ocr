@@ -151,7 +151,7 @@ fun pickColumnBoundaries(
       val leftPeak = ((x - charWidthPx).coerceAtLeast(0)..x).maxOf { smoothed[it] }
       val rightPeak = (x..(x + charWidthPx).coerceAtMost(smoothed.lastIndex)).maxOf { smoothed[it] }
       val prominence = minOf(leftPeak - v, rightPeak - v)
-      if (prominence >= (max - min) * 0.10) { // 최소 돌출도
+      if (prominence >= (max - min) * 0.10) {
         candidates += x
       }
     }
