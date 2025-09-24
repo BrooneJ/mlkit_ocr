@@ -22,6 +22,7 @@ import com.example.ocr.screen.ocr.utils.enforceMinCellWidth
 import com.example.ocr.screen.ocr.utils.headerBandFromWords
 import com.example.ocr.screen.ocr.utils.minCellWidth
 import com.example.ocr.screen.ocr.utils.pickColumnBoundaries
+import com.example.ocr.screen.ocr.utils.pickColumnBoundariesAdaptive
 import com.example.ocr.screen.ocr.utils.pickColumnBoundariesRobust
 import com.example.ocr.screen.ocr.utils.recognizeText
 import com.example.ocr.screen.ocr.utils.recognizeWordsFromUri
