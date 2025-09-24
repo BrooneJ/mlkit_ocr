@@ -34,7 +34,7 @@ fun SelectableCard(
           .padding(vertical = 12.dp, horizontal = 8.dp)
       ) {
         Image(
-          bitmap = bitmap!!.asImageBitmap(),
+          bitmap = bitmap.asImageBitmap(),
           contentDescription = null,
           modifier = Modifier
             .fillMaxWidth()
