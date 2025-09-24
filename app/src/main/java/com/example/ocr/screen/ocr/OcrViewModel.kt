@@ -77,196 +77,68 @@ class OcrViewModel(
 
   private val _resultMap = MutableStateFlow<List<Pair<String, String>>>(emptyList())
 
+  private fun pickEdgesFor(type: OcrType): List<Int>? = when (type) {
+    OcrType.ADAPTIVE -> _edges.value?.adaptive
+    OcrType.FROMVALLEY -> _edges.value?.valleys
+    OcrType.FROMPEAK -> _edges.value?.peaks
+    OcrType.FROMWIDTH -> _edges.value?.width
+    OcrType.ENFORCE -> _edges.value?.enforced
+  }
+
+  private fun ensureMinCanvas(src: Bitmap, minW: Int = 32, minH: Int = 32): Bitmap {
+    if (src.width >= minW && src.height >= minH) return src
+    val w = maxOf(minW, src.width)
+    val h = maxOf(minH, src.height)
+    val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+    val c = android.graphics.Canvas(out)
+    c.drawColor(android.graphics.Color.WHITE)
+    val dx = ((w - src.width) / 2f)
+    val dy = ((h - src.height) / 2f)
+    c.drawBitmap(src, dx, dy, null)
+    return out
+  }
+
+  private suspend fun recognizeCells(bitmaps: List<Bitmap>): List<String> {
+    // Sequential; if you want speed, you can use limited concurrency with async.
+    val results = mutableListOf<String>()
+    for (cell in bitmaps) {
+      val safe = ensureMinCanvas(cell, 32, 32)
+      val text = recognizeText(safe).text.trim()
+      results += if (text.isBlank()) "??" else text
+    }
+    return results
+  }
+
+  private suspend fun runOcrWithEdges(type: OcrType) {
+    val header = _headerPreview.value ?: return
+    val body = _bodyPreview.value ?: return
+    val edges = pickEdgesFor(type) ?: return
+
+    // Split bitmaps by edges
+    val dateCells = splitHeadBandByEdges(header, edges)
+    val workCells = splitHeadBandByEdges(body, edges)
+
+    // OCR
+    val dates = recognizeCells(dateCells)
+    val works = recognizeCells(workCells)
+
+    // Publish state (replace, don’t append)
+    _dateCells.value = dateCells
+    _workCells.value = workCells
+    _dateList.value = dates
+    _scheduleList.value = works
+
+    // Zip safely to the shorter length
+    _resultMap.value = dates.zip(works)
+
+    Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
+  }
+
   fun onAction(action: OcrAction) {
     when (action) {
       is OcrAction.CardChosen -> {
-        when (action.type) {
-          OcrType.ADAPTIVE -> {
-            if (_headerPreview.value == null) return
-            if (_bodyPreview.value == null) return
-            if (_edges.value?.adaptive.isNullOrEmpty()) return
-            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.adaptive)
-            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.adaptive)
-            viewModelScope.launch {
-              _dateCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _dateList.value = _dateList.value + "??"
-                  } else {
-                    _dateList.value = _dateList.value + result.text
-                  }
-                }
-              }
-
-              _workCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _scheduleList.value = _scheduleList.value + "??"
-                  } else {
-                    _scheduleList.value = _scheduleList.value + result.text
-                  }
-                }
-              }
-
-              _resultMap.value = _dateList.value.zip(_scheduleList.value)
-              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
-            }
-          }
-
-          OcrType.FROMVALLEY -> {
-            if (_headerPreview.value == null) return
-            if (_edges.value?.valleys.isNullOrEmpty()) return
-            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.valleys)
-            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.valleys)
-            viewModelScope.launch {
-              _dateCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _dateList.value = _dateList.value + "??"
-                  } else {
-                    _dateList.value = _dateList.value + result.text
-                  }
-                }
-              }
-
-              _workCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _scheduleList.value = _scheduleList.value + "??"
-                  } else {
-                    _scheduleList.value = _scheduleList.value + result.text
-                  }
-                }
-              }
-
-              _resultMap.value = _dateList.value.zip(_scheduleList.value)
-              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
-            }
-          }
-
-          OcrType.FROMPEAK -> {
-            if (_headerPreview.value == null) return
-            if (_edges.value?.peaks.isNullOrEmpty()) return
-            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.peaks)
-            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.peaks)
-            viewModelScope.launch {
-              _dateCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _dateList.value = _dateList.value + "??"
-                  } else {
-                    _dateList.value = _dateList.value + result.text
-                  }
-                }
-              }
-
-              _workCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _scheduleList.value = _scheduleList.value + "??"
-                  } else {
-                    _scheduleList.value = _scheduleList.value + result.text
-                  }
-                }
-              }
-
-              _resultMap.value = _dateList.value.zip(_scheduleList.value)
-              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
-            }
-          }
-
-          OcrType.FROMWIDTH -> {
-            if (_headerPreview.value == null) return
-            if (_edges.value?.width.isNullOrEmpty()) return
-            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.width)
-            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.width)
-            viewModelScope.launch {
-              _dateCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _dateList.value = _dateList.value + "??"
-                  } else {
-                    _dateList.value = _dateList.value + result.text
-                  }
-                }
-              }
-
-              _workCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _scheduleList.value = _scheduleList.value + "??"
-                  } else {
-                    _scheduleList.value = _scheduleList.value + result.text
-                  }
-                }
-              }
-
-              _resultMap.value = _dateList.value.zip(_scheduleList.value)
-              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
-            }
-          }
-
-          OcrType.ENFORCE -> {
-            if (_headerPreview.value == null) return
-            if (_edges.value?.enforced.isNullOrEmpty()) return
-            _dateCells.value = splitHeadBandByEdges(_headerPreview.value!!, _edges.value!!.enforced)
-            _workCells.value = splitHeadBandByEdges(_bodyPreview.value!!, _edges.value!!.enforced)
-            viewModelScope.launch {
-              _dateCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _dateList.value = _dateList.value + "??"
-                  } else {
-                    _dateList.value = _dateList.value + result.text
-                  }
-                }
-              }
-
-              _workCells.value.forEach {
-                if (it.width < 32 || it.height < 32) {
-                  return@forEach
-                } else {
-                  val result = recognizeText(it)
-                  if (result.text == "") {
-                    _scheduleList.value = _scheduleList.value + "??"
-                  } else {
-                    _scheduleList.value = _scheduleList.value + result.text
-                  }
-                }
-              }
-
-              _resultMap.value = _dateList.value.zip(_scheduleList.value)
-              Log.d("OcrViewModel", "Schedule map: ${_resultMap.value}")
-            }
-          }
-        }
+        Log.d("OcrViewModel", "${action.type} selected")
+        viewModelScope.launch { runOcrWithEdges(action.type) }
       }
     }
   }
