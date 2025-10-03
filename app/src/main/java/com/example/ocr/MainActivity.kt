@@ -16,12 +16,15 @@ import androidx.navigation.toRoute
 import com.example.ocr.navigation.CropRoute
 import com.example.ocr.navigation.DrawRoute
 import com.example.ocr.navigation.MainRoute
+import com.example.ocr.navigation.OcrRoute
 import com.example.ocr.navigation.TakenPictureRoute
 import com.example.ocr.screen.captured.CapturedScreen
 import com.example.ocr.screen.crop.CropScreen
 import com.example.ocr.screen.draw.DrawScreen
 import com.example.ocr.screen.draw.DrawViewModel
 import com.example.ocr.screen.main.MainScreen
+import com.example.ocr.screen.ocr.OcrScreen
+import com.example.ocr.screen.ocr.OcrViewModel
 import com.example.ocr.ui.theme.OCRTheme
 
 class MainActivity : ComponentActivity() {
@@ -67,6 +70,11 @@ class MainActivity : ComponentActivity() {
               },
               onBack = {
                 navController.popBackStack()
+              },
+              onConfirm = {
+                navController.navigate(
+                  OcrRoute.create(capturedImageUri)
+                )
               }
             )
           }
@@ -110,6 +118,16 @@ class MainActivity : ComponentActivity() {
               paths = state.paths,
               currentPath = state.currentPath,
               thickness = state.thickness
+            )
+          }
+
+          composable<OcrRoute> { backStackEntry ->
+            val viewModel: OcrViewModel = viewModel(backStackEntry)
+            OcrScreen(
+              viewModel = viewModel,
+              onBack = {
+                navController.popBackStack()
+              }
             )
           }
         }

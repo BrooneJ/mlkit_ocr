@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +43,7 @@ fun CapturedScreen(
   onCrop: (Uri) -> Unit = {},
   onDraw: (Uri) -> Unit = {},
   onBack: () -> Unit,
+  onConfirm: () -> Unit
 ) {
   Box(
     modifier = Modifier
@@ -70,6 +72,15 @@ fun CapturedScreen(
               )
             }
           },
+          actions = {
+            IconButton(
+              onClick = {
+                onConfirm()
+              }
+            ) {
+              Icon(imageVector = Icons.Default.Check, contentDescription = "Confirm")
+            }
+          }
         )
       }
     ) { padding ->
@@ -136,6 +147,6 @@ fun CapturedScreen(
 @Composable
 private fun CapturedScreenPreview() {
   OCRTheme {
-    CapturedScreen(capturedImageUri = Uri.EMPTY, onBack = {})
+    CapturedScreen(capturedImageUri = Uri.EMPTY, onBack = {}, onConfirm = {})
   }
 }

@@ -48,3 +48,17 @@ data class DrawRoute(
     }
   }
 }
+
+@Serializable
+data class OcrRoute(
+  val encodedUri: String,
+) {
+  val uri: Uri
+    get() = Uri.parse(Uri.decode(encodedUri))
+
+  companion object {
+    fun create(uri: Uri): OcrRoute {
+      return OcrRoute(encodedUri = Uri.encode(uri.toString()))
+    }
+  }
+}

@@ -354,6 +354,6 @@ internal class CropStateManager(
   }
 
   companion object {
-    private const val MIN_CROP_SIZE = 250f // Minimum size for crop rectangle
+    private const val MIN_CROP_SIZE = 50f // Minimum size for crop rectangle
   }
 }
