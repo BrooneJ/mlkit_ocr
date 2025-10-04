@@ -19,8 +19,8 @@ class CropViewModel : ViewModel() {
   private val _state = MutableStateFlow(CropUiState())
   val state: StateFlow<CropUiState> = _state.asStateFlow()
 
-  var decodedBitmap: Bitmap? = null
-    private set
+  private var _decodedBitmap = MutableStateFlow<Bitmap?>(null)
+  val decodedBitmap = _decodedBitmap.asStateFlow()
 
   fun setSource(context: Context, uri: Uri) {
     if (_state.value.sourceUri == uri) return
@@ -29,7 +29,7 @@ class CropViewModel : ViewModel() {
       runCatching {
         loadBitmapFromUri(context, uri)
       }.onSuccess { bitmap ->
-        decodedBitmap = bitmap
+        _decodedBitmap.value = bitmap
         _state.update { it.copy(isLoading = false) }
       }.onFailure { error ->
         _state.update { it.copy(isLoading = false, error = error) }
