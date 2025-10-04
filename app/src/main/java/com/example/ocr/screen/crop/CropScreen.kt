@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -81,12 +82,31 @@ fun CropScreen(
     )
   }
 
+  val context = LocalContext.current
+
+  val bitmap by viewModel.decodedBitmap.collectAsStateWithLifecycle()
+
+  LaunchedEffect(capturedImageUri) {
+    viewModel.setSource(context, capturedImageUri)
+  }
+
+  if (bitmap == null) {
+    // Show loading or error state
+    Box(
+      modifier = Modifier.fillMaxSize(),
+      contentAlignment = Alignment.Center
+    ) {
+      CircularProgressIndicator()
+    }
+    return
+  }
+
   Box(
     modifier = Modifier
       .fillMaxSize()
   ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    val image = viewModel.decodedBitmap
+    val image = bitmap
 
     val cropController = image?.let {
       rememberCropController(
@@ -96,12 +116,6 @@ fun CropScreen(
           gridLinesType = uiState.gridLinesType
         )
       )
-    }
-
-    val context = LocalContext.current
-
-    LaunchedEffect(capturedImageUri) {
-      viewModel.setSource(context, capturedImageUri)
     }
 
     Scaffold(
