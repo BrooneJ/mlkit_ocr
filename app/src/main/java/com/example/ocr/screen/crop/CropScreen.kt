@@ -127,9 +127,8 @@ fun CropScreen(
       .fillMaxSize()
   ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    val image = bitmap
 
-    val cropController = image?.let {
+    val cropController = bitmap?.let {
       rememberCropController(
         bitmap = it,
         cropOptions = CropDefaults.cropOptions(
