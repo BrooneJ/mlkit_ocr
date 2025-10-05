@@ -99,8 +99,8 @@ fun CropScreen(
       val error = state.error
 
       when {
-        state.isLoading -> CircularProgressIndicator()
         error != null -> Text("Error: ${error.localizedMessage ?: "Unknown Error"}")
+        else -> CircularProgressIndicator()
       }
     }
     return
