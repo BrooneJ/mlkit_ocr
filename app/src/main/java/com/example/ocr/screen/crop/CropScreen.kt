@@ -128,15 +128,14 @@ fun CropScreen(
   ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    val cropController = bitmap?.let {
+    val cropController =
       rememberCropController(
-        bitmap = it,
+        bitmap = requireNotNull(bitmap),
         cropOptions = CropDefaults.cropOptions(
           cropShape = uiState.cropShape,
           gridLinesType = uiState.gridLinesType
         )
       )
-    }
 
     Scaffold(
       modifier = Modifier.fillMaxSize(),
@@ -154,7 +153,7 @@ fun CropScreen(
           actions = {
             IconButton(
               onClick = {
-                cropController?.crop()?.let {
+                cropController.crop().let {
                   val croppedUri = saveTempBitmapToCache(context, it)
                   onCropComplete(croppedUri)
                 }
@@ -183,123 +182,121 @@ fun CropScreen(
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-          if (cropController != null) {
-            val cropState = cropController.state.collectAsStateWithLifecycle().value
-            var cropperBoundsInRoot by remember { mutableStateOf<Rect?>(null) }
-            // This Rect will be used to calculate the image rectangle in the root layout coordinates
-            val targetBounds = remember(cropperBoundsInRoot, cropState.imageRect) {
-              val bounds = cropperBoundsInRoot
-              val img = cropState.imageRect
-              if (bounds != null) {
-                Rect(
-                  left = bounds.left + img.left,
-                  top = bounds.top + img.top,
-                  right = bounds.left + img.right,
-                  bottom = bounds.top + img.bottom
-                )
-              } else null
+          val cropState = cropController.state.collectAsStateWithLifecycle().value
+          var cropperBoundsInRoot by remember { mutableStateOf<Rect?>(null) }
+          // This Rect will be used to calculate the image rectangle in the root layout coordinates
+          val targetBounds = remember(cropperBoundsInRoot, cropState.imageRect) {
+            val bounds = cropperBoundsInRoot
+            val img = cropState.imageRect
+            if (bounds != null) {
+              Rect(
+                left = bounds.left + img.left,
+                top = bounds.top + img.top,
+                right = bounds.left + img.right,
+                bottom = bounds.top + img.bottom
+              )
+            } else null
+          }
+
+          EdgeExclusionLayer(
+            modifier = Modifier
+              .weight(1f),
+            // 3) Delivers the image rectangle in root coordinates
+            targetBounds = targetBounds
+          ) {
+            ImageCropper(
+              modifier = Modifier
+                .padding(safeGestureInsets)
+                .fillMaxWidth()
+                .weight(1f)
+                // 2) This is the bounds of the cropper in the root layout
+                .onGloballyPositioned { coords ->
+                  cropperBoundsInRoot = coords.boundsInRoot()
+                },
+              cropController = cropController
+            )
+          }
+
+          Spacer(Modifier.height(16.dp))
+
+          SingleChoiceSegmentedButtonRow(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 24.dp),
+          ) {
+
+            SegmentedButton(
+              selected = uiState.cropShape == CropShape.FreeForm,
+              onClick = { viewModel.setCropShape(CropShape.FreeForm) },
+              shape = SegmentedButtonDefaults.itemShape(
+                index = 0,
+                count = 2
+              )
+            ) {
+              Text("Free-Form")
             }
 
-            EdgeExclusionLayer(
-              modifier = Modifier
-                .weight(1f),
-              // 3) Delivers the image rectangle in root coordinates
-              targetBounds = targetBounds
+            SegmentedButton(
+              selected = uiState.cropShape == CropShape.Original,
+              onClick = { viewModel.setCropShape(CropShape.Original) },
+              shape = SegmentedButtonDefaults.itemShape(
+                index = 1,
+                count = 2
+              )
             ) {
-              ImageCropper(
-                modifier = Modifier
-                  .padding(safeGestureInsets)
-                  .fillMaxWidth()
-                  .weight(1f)
-                  // 2) This is the bounds of the cropper in the root layout
-                  .onGloballyPositioned { coords ->
-                    cropperBoundsInRoot = coords.boundsInRoot()
-                  },
-                cropController = cropController
+              Text("Original")
+            }
+          }
+
+          Spacer(Modifier.height(16.dp))
+
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+          ) {
+
+            IconButton(
+              onClick = {
+                cropController.rotateAntiClockwise()
+              }
+            ) {
+              Icon(
+                painter = painterResource(R.drawable.ic_rotate_acw),
+                contentDescription = "Rotate Anti-Clockwise",
               )
             }
 
-            Spacer(Modifier.height(16.dp))
-
-            SingleChoiceSegmentedButtonRow(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
+            IconButton(
+              onClick = {
+                cropController.rotateClockwise()
+              }
             ) {
-
-              SegmentedButton(
-                selected = uiState.cropShape == CropShape.FreeForm,
-                onClick = { viewModel.setCropShape(CropShape.FreeForm) },
-                shape = SegmentedButtonDefaults.itemShape(
-                  index = 0,
-                  count = 2
-                )
-              ) {
-                Text("Free-Form")
-              }
-
-              SegmentedButton(
-                selected = uiState.cropShape == CropShape.Original,
-                onClick = { viewModel.setCropShape(CropShape.Original) },
-                shape = SegmentedButtonDefaults.itemShape(
-                  index = 1,
-                  count = 2
-                )
-              ) {
-                Text("Original")
-              }
+              Icon(
+                painter = painterResource(R.drawable.ic_rotate_cw),
+                contentDescription = "Rotate Clockwise",
+              )
             }
 
-            Spacer(Modifier.height(16.dp))
-
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceEvenly
+            IconButton(
+              onClick = {
+                cropController.flipVertically()
+              }
             ) {
+              Icon(
+                painter = painterResource(R.drawable.ic_flip_vert),
+                contentDescription = "Flip Vertically",
+              )
+            }
 
-              IconButton(
-                onClick = {
-                  cropController.rotateAntiClockwise()
-                }
-              ) {
-                Icon(
-                  painter = painterResource(R.drawable.ic_rotate_acw),
-                  contentDescription = "Rotate Anti-Clockwise",
-                )
+            IconButton(
+              onClick = {
+                cropController.flipHorizontally()
               }
-
-              IconButton(
-                onClick = {
-                  cropController.rotateClockwise()
-                }
-              ) {
-                Icon(
-                  painter = painterResource(R.drawable.ic_rotate_cw),
-                  contentDescription = "Rotate Clockwise",
-                )
-              }
-
-              IconButton(
-                onClick = {
-                  cropController.flipVertically()
-                }
-              ) {
-                Icon(
-                  painter = painterResource(R.drawable.ic_flip_vert),
-                  contentDescription = "Flip Vertically",
-                )
-              }
-
-              IconButton(
-                onClick = {
-                  cropController.flipHorizontally()
-                }
-              ) {
-                Icon(
-                  painter = painterResource(R.drawable.ic_flip_horiz),
-                  contentDescription = "Flip Horizontally",
-                )
-              }
+            ) {
+              Icon(
+                painter = painterResource(R.drawable.ic_flip_horiz),
+                contentDescription = "Flip Horizontally",
+              )
             }
           }
         }
