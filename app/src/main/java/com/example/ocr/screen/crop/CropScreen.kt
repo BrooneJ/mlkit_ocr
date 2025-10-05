@@ -93,31 +93,15 @@ fun CropScreen(
 
   if (bitmap == null) {
     // Show loading or error state
-    if (!state.isLoading && state.error == null) {
-      Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-      ) {
-        Text("No image to display")
-      }
-      return
-    }
-
-    state.error?.let {
-      Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-      ) {
-        Text("Error: ${it.localizedMessage ?: "Unknown error"}")
-      }
-      return
-    }
-
     Box(
       modifier = Modifier.fillMaxSize(),
       contentAlignment = Alignment.Center
     ) {
-      CircularProgressIndicator()
+      when {
+        state.isLoading -> CircularProgressIndicator()
+        state.error != null -> Text("Error: ${state.error!!.localizedMessage ?: "Unknown error"}")
+        else -> Text("No image to display")
+      }
     }
     return
   }
@@ -126,7 +110,7 @@ fun CropScreen(
     modifier = Modifier
       .fillMaxSize()
   ) {
-    
+
     val cropController =
       rememberCropController(
         bitmap = requireNotNull(bitmap),
