@@ -22,12 +22,16 @@ class CropViewModel : ViewModel() {
     if (_state.value.sourceUri == uri) return
     _state.update { it.copy(sourceUri = uri, isLoading = true, decodedBitmap = null, error = null) }
     viewModelScope.launch(Dispatchers.IO) {
-      runCatching {
-        loadBitmapFromUri(context, uri)
-      }.onSuccess { bitmap ->
-        _state.update { it.copy(isLoading = false, decodedBitmap = bitmap) }
-      }.onFailure { error ->
-        _state.update { it.copy(isLoading = false, decodedBitmap = null, error = error) }
+      val result = runCatching { loadBitmapFromUri(context, uri) }
+      _state.update { currentState ->
+        result.fold(
+          onSuccess = { bitmap ->
+            currentState.copy(isLoading = false, decodedBitmap = bitmap, error = null)
+          },
+          onFailure = { error ->
+            currentState.copy(isLoading = false, decodedBitmap = null, error = error)
+          }
+        )
       }
     }
   }
