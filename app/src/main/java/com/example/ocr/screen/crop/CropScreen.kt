@@ -126,14 +126,13 @@ fun CropScreen(
     modifier = Modifier
       .fillMaxSize()
   ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
+    
     val cropController =
       rememberCropController(
         bitmap = requireNotNull(bitmap),
         cropOptions = CropDefaults.cropOptions(
-          cropShape = uiState.cropShape,
-          gridLinesType = uiState.gridLinesType
+          cropShape = state.cropShape,
+          gridLinesType = state.gridLinesType
         )
       )
 
@@ -226,7 +225,7 @@ fun CropScreen(
           ) {
 
             SegmentedButton(
-              selected = uiState.cropShape == CropShape.FreeForm,
+              selected = state.cropShape == CropShape.FreeForm,
               onClick = { viewModel.setCropShape(CropShape.FreeForm) },
               shape = SegmentedButtonDefaults.itemShape(
                 index = 0,
@@ -237,7 +236,7 @@ fun CropScreen(
             }
 
             SegmentedButton(
-              selected = uiState.cropShape == CropShape.Original,
+              selected = state.cropShape == CropShape.Original,
               onClick = { viewModel.setCropShape(CropShape.Original) },
               shape = SegmentedButtonDefaults.itemShape(
                 index = 1,
