@@ -85,6 +85,7 @@ fun CropScreen(
   val context = LocalContext.current
 
   val bitmap by viewModel.decodedBitmap.collectAsStateWithLifecycle()
+  val state by viewModel.state.collectAsStateWithLifecycle()
 
   LaunchedEffect(capturedImageUri) {
     viewModel.setSource(context, capturedImageUri)
@@ -92,6 +93,26 @@ fun CropScreen(
 
   if (bitmap == null) {
     // Show loading or error state
+    if (!state.isLoading && state.error == null) {
+      Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+      ) {
+        Text("No image to display")
+      }
+      return
+    }
+
+    state.error?.let {
+      Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+      ) {
+        Text("Error: ${it.localizedMessage ?: "Unknown error"}")
+      }
+      return
+    }
+
     Box(
       modifier = Modifier.fillMaxSize(),
       contentAlignment = Alignment.Center
