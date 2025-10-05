@@ -96,12 +96,11 @@ fun CropScreen(
       modifier = Modifier.fillMaxSize(),
       contentAlignment = Alignment.Center
     ) {
+      val error = state.error
 
       when {
         state.isLoading -> CircularProgressIndicator()
-        state.error != null -> state.error?.let { error ->
-          Text("Error: ${error.message}")
-        } ?: Text("Error: Unknown error")
+        error != null -> Text("Error: ${error.localizedMessage ?: "Unknown Error"}")
       }
     }
     return
