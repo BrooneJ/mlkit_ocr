@@ -14,6 +14,9 @@ mlkitVersion = "16.0.1"
 composeBom = "2024.09.00"
 serializationVersion = "2.2.0"
 serializationJsonVersion = "1.9.0"
+retrofitVersion = "2.9.0"
+retrofitKotlinSerializationConverterVersion = "1.0.0"
+okhttpVersion = "4.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +44,9 @@ camera-extensions = { group = "androidx.camera", name = "camera-extensions", ver
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilVersion" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationVersion" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJsonVersion" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofitVersion" }
+retrofit-kotlinx-serialization-converter = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinSerializationConverterVersion" }
+okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttpVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

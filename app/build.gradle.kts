@@ -58,6 +58,10 @@ dependencies {
   implementation(libs.coil.compose)
   implementation(libs.navigation.compose)
   implementation(libs.kotlinx.serialization.json)
+  implementation(libs.okhttp3)
+  implementation(libs.retrofit.kotlinx.serialization.converter)
+  implementation(libs.retrofit)
+
 
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)
