@@ -84,14 +84,13 @@ fun CropScreen(
 
   val context = LocalContext.current
 
-  val bitmap by viewModel.decodedBitmap.collectAsStateWithLifecycle()
   val state by viewModel.state.collectAsStateWithLifecycle()
 
   LaunchedEffect(capturedImageUri) {
     viewModel.setSource(context, capturedImageUri)
   }
 
-  if (bitmap == null) {
+  if (state.decodedBitmap == null) {
     // Show loading or error state
     Box(
       modifier = Modifier.fillMaxSize(),
@@ -113,7 +112,7 @@ fun CropScreen(
 
     val cropController =
       rememberCropController(
-        bitmap = requireNotNull(bitmap),
+        bitmap = requireNotNull(state.decodedBitmap),
         cropOptions = CropDefaults.cropOptions(
           cropShape = state.cropShape,
           gridLinesType = state.gridLinesType

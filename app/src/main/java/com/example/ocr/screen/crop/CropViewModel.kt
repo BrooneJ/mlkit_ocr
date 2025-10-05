@@ -1,7 +1,6 @@
 package com.example.ocr.screen.crop
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,9 +18,6 @@ class CropViewModel : ViewModel() {
   private val _state = MutableStateFlow(CropUiState())
   val state: StateFlow<CropUiState> = _state.asStateFlow()
 
-  private var _decodedBitmap = MutableStateFlow<Bitmap?>(null)
-  val decodedBitmap = _decodedBitmap.asStateFlow()
-
   fun setSource(context: Context, uri: Uri) {
     if (_state.value.sourceUri == uri) return
     _state.update { it.copy(sourceUri = uri, isLoading = true, error = null) }
@@ -29,8 +25,7 @@ class CropViewModel : ViewModel() {
       runCatching {
         loadBitmapFromUri(context, uri)
       }.onSuccess { bitmap ->
-        _decodedBitmap.value = bitmap
-        _state.update { it.copy(isLoading = false) }
+        _state.update { it.copy(isLoading = false, decodedBitmap = bitmap) }
       }.onFailure { error ->
         _state.update { it.copy(isLoading = false, error = error) }
       }
