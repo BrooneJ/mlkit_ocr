@@ -102,8 +102,6 @@ fun CropScreen(
         state.error != null -> state.error?.let { error ->
           Text("Error: ${error.message}")
         } ?: Text("Error: Unknown error")
-
-        else -> Text("No image to display")
       }
     }
     return
