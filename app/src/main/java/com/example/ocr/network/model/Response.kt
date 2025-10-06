@@ -14,7 +14,7 @@ data class ResponseRequest(
 @Serializable
 data class ResponseInput(
   val role: String,
-  val content: String
+  val content: List<ContentPart>
 )
 
 @OptIn(ExperimentalSerializationApi::class)
