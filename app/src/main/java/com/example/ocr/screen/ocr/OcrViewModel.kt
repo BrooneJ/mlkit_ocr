@@ -38,6 +38,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -241,9 +242,10 @@ class OcrViewModel @Inject constructor(
           imageUri = uri,
         )
         Log.d("AI Response", "Received response: $output")
-      } catch (t: Throwable) {
-        error = t.message
-        Log.e("AI Response", "Error during API call", t)
+      } catch (e: HttpException) {
+        val code = e.code()
+        val body = e.response()?.errorBody()?.string()
+        Log.e("AI Response", "HTTP $code, error=$body")
       } finally {
         isLoading = false
         Log.d("AI Response", "API call finished")
