@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.example.ocr.network.model
 
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -29,19 +31,37 @@ data class InputText(
 ) : ContentPart
 
 @Serializable
-data class ImageUrl(
-  val url: String
-)
-
-@Serializable
 @SerialName("input_image")
 data class InputImage(
-  @SerialName("image_url") val imageUrl: ImageUrl
+  @SerialName("image_url") val imageUrl: String
 ) : ContentPart
 
 @Serializable
 data class ResponsesResponse(
   val id: String? = null,
-  @SerialName("output_text") val outputText: String? = null,
-  val created: Long? = null
+  val output: List<OutputItem>? = null,
+  @SerialName("created_at") val created: Long? = null
 )
+
+@Serializable
+@JsonClassDiscriminator("type")
+sealed interface OutputItem
+
+@Serializable
+@SerialName("message")
+data class OutputMessage(
+  val id: String? = null,
+  val status: String? = null,
+  val role: String? = null,
+  val content: List<OutputContent> = emptyList()
+) : OutputItem
+
+@Serializable
+@JsonClassDiscriminator("type")
+sealed interface OutputContent
+
+@Serializable
+@SerialName("output_text")
+data class OutputText(
+  val text: String,
+) : OutputContent

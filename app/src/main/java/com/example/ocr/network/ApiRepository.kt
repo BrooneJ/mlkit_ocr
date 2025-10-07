@@ -2,9 +2,10 @@ package com.example.ocr.network
 
 import android.content.Context
 import android.net.Uri
-import com.example.ocr.network.model.ImageUrl
 import com.example.ocr.network.model.InputImage
 import com.example.ocr.network.model.InputText
+import com.example.ocr.network.model.OutputMessage
+import com.example.ocr.network.model.OutputText
 import com.example.ocr.network.model.ResponseInput
 import com.example.ocr.network.model.ResponseRequest
 import com.example.ocr.screen.ocr.utils.uriToDataUri
@@ -40,7 +41,7 @@ class ApiRepositoryImpl @Inject constructor(
               text = prompt
             ),
             InputImage(
-              imageUrl = ImageUrl(url = dataUri)
+              imageUrl = dataUri
             )
           )
         )
@@ -48,6 +49,12 @@ class ApiRepositoryImpl @Inject constructor(
     )
 
     val res = api.createResponse(req)
-    return res.outputText ?: "No response"
+    if (res.output == null) return "No response"
+    val result = res.output.let { list ->
+      val message = list.filterIsInstance<OutputMessage>().firstOrNull()
+      val texts = message?.content?.filterIsInstance<OutputText>()?.map { it.text }
+      texts?.joinToString("\n") ?: "No response"
+    }
+    return result
   }
 }
