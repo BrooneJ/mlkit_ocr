@@ -15,17 +15,18 @@ interface ApiRepository {
     model: String,
     prompt: String,
     imageUri: Uri,
+    appContext: Context,
   ): String
 }
 
 class ApiRepositoryImpl @Inject constructor(
   private val api: OpenAiApi,
-  private val appContext: Context
 ) : ApiRepository {
   override suspend fun askWithImage(
     model: String,
     prompt: String,
     imageUri: Uri,
+    appContext: Context,
   ): String {
     val dataUri = uriToDataUri(appContext, imageUri)
 

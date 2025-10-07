@@ -217,7 +217,7 @@ class OcrViewModel @Inject constructor(
   var error by mutableStateOf<String?>(null)
     private set
 
-  fun analyzeSchedule() {
+  fun analyzeSchedule(context: Context) {
     Log.d("AI Response", "Analyzing schedule...")
     val prompt = """
       You are a vision model that reads staff shift tables.
@@ -239,12 +239,15 @@ class OcrViewModel @Inject constructor(
           model = "gpt-4o",
           prompt = prompt,
           imageUri = uri,
+          appContext = context,
         )
         Log.d("AI Response", "Received response: $output")
       } catch (t: Throwable) {
         error = t.message
+        Log.e("AI Response", "Error during API call", t)
       } finally {
         isLoading = false
+        Log.d("AI Response", "API call finished")
       }
     }
   }
