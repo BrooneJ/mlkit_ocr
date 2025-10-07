@@ -9,7 +9,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface dataModule {
+interface DataModule {
 
   @Binds
   fun bindApiRepository(impl: ApiRepositoryImpl): ApiRepository
