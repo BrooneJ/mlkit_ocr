@@ -8,6 +8,7 @@ import com.example.ocr.network.model.InputText
 import com.example.ocr.network.model.ResponseInput
 import com.example.ocr.network.model.ResponseRequest
 import com.example.ocr.screen.ocr.utils.uriToDataUri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 interface ApiRepository {
@@ -15,18 +16,17 @@ interface ApiRepository {
     model: String,
     prompt: String,
     imageUri: Uri,
-    appContext: Context,
   ): String
 }
 
 class ApiRepositoryImpl @Inject constructor(
   private val api: OpenAiApi,
+  @ApplicationContext private val appContext: Context,
 ) : ApiRepository {
   override suspend fun askWithImage(
     model: String,
     prompt: String,
     imageUri: Uri,
-    appContext: Context,
   ): String {
     val dataUri = uriToDataUri(appContext, imageUri)
 

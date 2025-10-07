@@ -38,7 +38,7 @@ fun OcrScreen(
 
   LaunchedEffect(viewModel) {
     viewModel.processImage(context)
-    viewModel.analyzeSchedule(context)
+    viewModel.analyzeSchedule()
   }
 
   val scrollState = rememberScrollState()
