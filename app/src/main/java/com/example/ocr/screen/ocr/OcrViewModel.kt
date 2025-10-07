@@ -7,11 +7,15 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
+import com.example.ocr.network.ApiRepository
 import com.example.ocr.screen.ocr.utils.RectI
 import com.example.ocr.screen.ocr.utils.RowType
 import com.example.ocr.screen.ocr.utils.bodyBandFromWords
@@ -30,12 +34,16 @@ import com.example.ocr.screen.ocr.utils.roughCharWidth
 import com.example.ocr.screen.ocr.utils.smooth
 import com.example.ocr.screen.ocr.utils.splitHeadBandByEdges
 import com.example.ocr.screen.ocr.utils.verticalProjection
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class OcrViewModel(
+@HiltViewModel
+class OcrViewModel @Inject constructor(
   handle: SavedStateHandle,
+  private val repo: ApiRepository,
 ) : ViewModel() {
   val args: OcrRoute = handle.toRoute<OcrRoute>()
   val targetUri: Uri? = args.uri
@@ -198,6 +206,46 @@ class OcrViewModel(
 
       val testWord = recognizeText(_headerPreview.value ?: return@launch)
       Log.d("OcrViewModel", "Test recognized text: $testWord")
+    }
+  }
+
+
+  var output by mutableStateOf("")
+    private set
+  var isLoading by mutableStateOf(false)
+    private set
+  var error by mutableStateOf<String?>(null)
+    private set
+
+  fun analyzeSchedule() {
+    Log.d("AI Response", "Analyzing schedule...")
+    val prompt = """
+      You are a vision model that reads staff shift tables.
+      Task: Extract pairs of date and duty(shift form).
+      Output only JSON that matches the provided schema.
+      Rules:
+      - Match each date with the corresponding duty on the same column/row.
+      - Preserve original date format (e.g., 09/01).
+      - If unreadable, set form to "不明".
+      - No extra commentary.
+    """.trimIndent()
+
+    val uri = targetUri ?: return
+    viewModelScope.launch {
+      isLoading = true
+      error = null
+      try {
+        output = repo.askWithImage(
+          model = "gpt-4o",
+          prompt = prompt,
+          imageUri = uri,
+        )
+        Log.d("AI Response", "Received response: $output")
+      } catch (t: Throwable) {
+        error = t.message
+      } finally {
+        isLoading = false
+      }
     }
   }
 }
