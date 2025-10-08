@@ -25,6 +25,7 @@ import com.example.ocr.screen.ocr.utils.drawColumnDebug
 import com.example.ocr.screen.ocr.utils.enforceMinCellWidth
 import com.example.ocr.screen.ocr.utils.headerBandFromWords
 import com.example.ocr.screen.ocr.utils.minCellWidth
+import com.example.ocr.screen.ocr.utils.parseScheduleListFromString
 import com.example.ocr.screen.ocr.utils.pickColumnBoundaries
 import com.example.ocr.screen.ocr.utils.pickColumnBoundariesAdaptive
 import com.example.ocr.screen.ocr.utils.pickColumnBoundariesRobust
@@ -242,6 +243,7 @@ class OcrViewModel @Inject constructor(
           imageUri = uri,
         )
         Log.d("AI Response", "Received response: $output")
+        val scheduleList = parseScheduleListFromString(output)
       } catch (e: HttpException) {
         val code = e.code()
         val body = e.response()?.errorBody()?.string()
