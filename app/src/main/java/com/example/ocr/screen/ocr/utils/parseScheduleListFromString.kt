@@ -12,8 +12,7 @@ data class ScheduleFormat(
 
 fun parseScheduleListFromString(raw: String): List<ScheduleFormat> {
   val entries = raw
-    .removePrefix("```json")
-    .removePrefix("```JSON")
+    .replaceFirst(Regex("^```json\\s*", RegexOption.IGNORE_CASE), "")
     .removeSuffix("```")
     .trim()
 
