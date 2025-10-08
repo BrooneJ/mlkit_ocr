@@ -223,13 +223,14 @@ class OcrViewModel @Inject constructor(
     Log.d("AI Response", "Analyzing schedule...")
     val prompt = """
       You are a vision model that reads staff shift tables.
-      Task: Extract pairs of date and duty(shift form).
+      Task: Extract pairs of date and duty.
       Output only JSON that matches the provided schema.
       Rules:
       - Match each date with the corresponding duty on the same column/row.
+      - Fixed field names: date, duty.
       - Preserve original date format (e.g., 09/01).
       - If unreadable, set form to "不明".
-      - No extra commentary.
+      - No extra content: no explanations, comments, additional text, key changes, or reordering
     """.trimIndent()
 
     val uri = targetUri ?: return
