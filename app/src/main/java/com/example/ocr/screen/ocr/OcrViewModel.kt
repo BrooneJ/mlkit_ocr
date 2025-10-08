@@ -249,6 +249,7 @@ class OcrViewModel @Inject constructor(
         val code = e.code()
         val body = e.response()?.errorBody()?.string()
         Log.e("AI Response", "HTTP $code, error=$body")
+        error = "API error: HTTP $code${if (!body.isNullOrBlank()) ", $body" else ""}"
       } finally {
         isLoading = false
         Log.d("AI Response", "API call finished")
