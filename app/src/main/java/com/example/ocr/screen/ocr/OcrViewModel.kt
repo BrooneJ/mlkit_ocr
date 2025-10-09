@@ -18,6 +18,7 @@ import com.example.ocr.navigation.OcrRoute
 import com.example.ocr.network.ApiRepository
 import com.example.ocr.screen.ocr.utils.RectI
 import com.example.ocr.screen.ocr.utils.RowType
+import com.example.ocr.screen.ocr.utils.ScheduleParser
 import com.example.ocr.screen.ocr.utils.bodyBandFromWords
 import com.example.ocr.screen.ocr.utils.cropToBitmap
 import com.example.ocr.screen.ocr.utils.detectEdgesInRow
@@ -25,7 +26,6 @@ import com.example.ocr.screen.ocr.utils.drawColumnDebug
 import com.example.ocr.screen.ocr.utils.enforceMinCellWidth
 import com.example.ocr.screen.ocr.utils.headerBandFromWords
 import com.example.ocr.screen.ocr.utils.minCellWidth
-import com.example.ocr.screen.ocr.utils.parseScheduleListFromString
 import com.example.ocr.screen.ocr.utils.pickColumnBoundaries
 import com.example.ocr.screen.ocr.utils.pickColumnBoundariesAdaptive
 import com.example.ocr.screen.ocr.utils.pickColumnBoundariesRobust
@@ -45,6 +45,7 @@ import javax.inject.Inject
 @HiltViewModel
 class OcrViewModel @Inject constructor(
   handle: SavedStateHandle,
+  private val scheduleParser: ScheduleParser,
   private val repo: ApiRepository,
 ) : ViewModel() {
   val args: OcrRoute = handle.toRoute<OcrRoute>()
@@ -244,7 +245,7 @@ class OcrViewModel @Inject constructor(
           imageUri = uri,
         )
         Log.d("AI Response", "Received response: $output")
-        val scheduleList = parseScheduleListFromString(output)
+        val scheduleList = scheduleParser.parse(output)
         Log.d("AI Response", "Parsed schedule: $scheduleList")
       } catch (e: HttpException) {
         val code = e.code()

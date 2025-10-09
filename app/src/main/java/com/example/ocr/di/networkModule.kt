@@ -15,9 +15,14 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.create
 import java.util.concurrent.TimeUnit
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 private const val BASE_URL = "https://api.openai.com/v1/"
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AppJson
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -42,6 +47,7 @@ object NetworkModule {
 
   @Singleton
   @Provides
+  @AppJson
   fun provideJson(): Json = Json {
     ignoreUnknownKeys = true
     encodeDefaults = false
@@ -49,7 +55,7 @@ object NetworkModule {
 
   @Provides
   @Singleton
-  fun providedOpenAiApi(json: Json, okhttp: OkHttpClient): OpenAiApi {
+  fun providedOpenAiApi(@AppJson json: Json, okhttp: OkHttpClient): OpenAiApi {
     val contentType = "application/json".toMediaType()
     return Retrofit.Builder()
       .baseUrl(BASE_URL)

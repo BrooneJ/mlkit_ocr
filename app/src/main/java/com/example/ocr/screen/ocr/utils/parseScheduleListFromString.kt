@@ -1,8 +1,9 @@
 package com.example.ocr.screen.ocr.utils
 
-import android.util.Log
+import com.example.ocr.di.AppJson
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
 
 @Serializable
 data class ScheduleFormat(
@@ -10,20 +11,14 @@ data class ScheduleFormat(
   val duty: String
 )
 
-fun parseScheduleListFromString(raw: String): List<ScheduleFormat> {
-  val entries = raw
-    .replaceFirst(Regex("^```json\\s*", RegexOption.IGNORE_CASE), "")
-    .removeSuffix("```")
-    .trim()
-
-  val json = Json { ignoreUnknownKeys = true }
-  val scheduleList: List<ScheduleFormat> =
-    try {
-      json.decodeFromString(entries)
-    } catch (e: Exception) {
-      Log.e("JSONDecodeError", "Failed to decode JSON: ${e.message}")
-      emptyList()
-    }
-
-  return scheduleList
+class ScheduleParser @Inject constructor(@AppJson private val json: Json) {
+  fun parse(raw: String): List<ScheduleFormat> = try {
+    val cleaned = raw
+      .replaceFirst(Regex("^```json\\s*", RegexOption.IGNORE_CASE), "")
+      .removeSuffix("```")
+      .trim()
+    json.decodeFromString(cleaned)
+  } catch (_: Exception) {
+    emptyList()
+  }
 }
