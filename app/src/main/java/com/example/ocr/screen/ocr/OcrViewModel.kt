@@ -234,7 +234,11 @@ class OcrViewModel @Inject constructor(
       - No extra content: no explanations, comments, additional text, key changes, or reordering
     """.trimIndent()
 
-    val uri = targetUri ?: return
+    val uri = targetUri
+    if (uri == null) {
+      error = "Image URI is missing. Cannot analyze schedule."
+      return
+    }
     viewModelScope.launch {
       isLoading = true
       error = null
