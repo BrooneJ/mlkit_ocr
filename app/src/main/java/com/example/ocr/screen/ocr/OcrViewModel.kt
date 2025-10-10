@@ -246,6 +246,7 @@ class OcrViewModel @Inject constructor(
         )
         Log.d("AI Response", "Received response: $output")
         val scheduleList = scheduleParser.parse(output)
+        // TODO: pass this data to UI on the next screen.
         Log.d("AI Response", "Parsed schedule: $scheduleList")
       } catch (e: HttpException) {
         val code = e.code()
