@@ -42,7 +42,7 @@ object NetworkModule {
       .connectTimeout(15, TimeUnit.SECONDS)
       .readTimeout(120, TimeUnit.SECONDS)
       .writeTimeout(120, TimeUnit.SECONDS)
-      .callTimeout(0, TimeUnit.SECONDS)
+      .callTimeout(150, TimeUnit.SECONDS)
       .build()
 
   @Singleton
