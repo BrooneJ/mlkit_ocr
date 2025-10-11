@@ -7,13 +7,20 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
+import com.example.ocr.network.ApiRepository
+import com.example.ocr.screen.ocr.constant.CHATGPT_MODEL
+import com.example.ocr.screen.ocr.constant.PROMPT_ANALYZE_SCHEDULE
 import com.example.ocr.screen.ocr.utils.RectI
 import com.example.ocr.screen.ocr.utils.RowType
+import com.example.ocr.screen.ocr.utils.ScheduleParser
 import com.example.ocr.screen.ocr.utils.bodyBandFromWords
 import com.example.ocr.screen.ocr.utils.cropToBitmap
 import com.example.ocr.screen.ocr.utils.detectEdgesInRow
@@ -30,12 +37,18 @@ import com.example.ocr.screen.ocr.utils.roughCharWidth
 import com.example.ocr.screen.ocr.utils.smooth
 import com.example.ocr.screen.ocr.utils.splitHeadBandByEdges
 import com.example.ocr.screen.ocr.utils.verticalProjection
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import javax.inject.Inject
 
-class OcrViewModel(
+@HiltViewModel
+class OcrViewModel @Inject constructor(
   handle: SavedStateHandle,
+  private val scheduleParser: ScheduleParser,
+  private val repo: ApiRepository,
 ) : ViewModel() {
   val args: OcrRoute = handle.toRoute<OcrRoute>()
   val targetUri: Uri? = args.uri
@@ -198,6 +211,48 @@ class OcrViewModel(
 
       val testWord = recognizeText(_headerPreview.value ?: return@launch)
       Log.d("OcrViewModel", "Test recognized text: $testWord")
+    }
+  }
+
+
+  var output by mutableStateOf("")
+    private set
+  var isLoading by mutableStateOf(false)
+    private set
+  var error by mutableStateOf<String?>(null)
+    private set
+
+  fun analyzeSchedule() {
+    Log.d("AI Response", "Analyzing schedule...")
+    val prompt = PROMPT_ANALYZE_SCHEDULE.trimIndent()
+
+    val uri = targetUri
+    if (uri == null) {
+      error = "Image URI is missing. Cannot analyze schedule."
+      return
+    }
+    viewModelScope.launch {
+      isLoading = true
+      error = null
+      try {
+        output = repo.askWithImage(
+          model = CHATGPT_MODEL,
+          prompt = prompt,
+          imageUri = uri,
+        )
+        Log.d("AI Response", "Received response: $output")
+        val scheduleList = scheduleParser.parse(output)
+        // TODO: pass this data to UI on the next screen.
+        Log.d("AI Response", "Parsed schedule: $scheduleList")
+      } catch (e: HttpException) {
+        val code = e.code()
+        val body = e.response()?.errorBody()?.string()
+        Log.e("AI Response", "HTTP $code, error=$body")
+        error = "API error: HTTP $code${if (!body.isNullOrBlank()) ", $body" else ""}"
+      } finally {
+        isLoading = false
+        Log.d("AI Response", "API call finished")
+      }
     }
   }
 }

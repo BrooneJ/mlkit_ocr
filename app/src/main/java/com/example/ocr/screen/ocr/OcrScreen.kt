@@ -25,18 +25,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ocr.screen.ocr.components.SelectableCard
 
 @Composable
 fun OcrScreen(
-  viewModel: OcrViewModel,
+  viewModel: OcrViewModel = hiltViewModel(),
   onBack: () -> Unit
 ) {
   val context = LocalContext.current
 
   LaunchedEffect(viewModel) {
     viewModel.processImage(context)
+    viewModel.analyzeSchedule()
   }
 
   val scrollState = rememberScrollState()
