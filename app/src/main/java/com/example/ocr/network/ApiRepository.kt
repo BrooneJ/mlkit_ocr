@@ -49,7 +49,9 @@ class ApiRepositoryImpl @Inject constructor(
     )
 
     val res = api.createResponse(req)
-    if (res.output == null) return "No response"
+    if (res.output == null) {
+      throw IllegalStateException("No output in response")
+    }
     val result = res.output.let { list ->
       val message = list.filterIsInstance<OutputMessage>().firstOrNull()
       val texts = message?.content?.filterIsInstance<OutputText>()?.map { it.text }
