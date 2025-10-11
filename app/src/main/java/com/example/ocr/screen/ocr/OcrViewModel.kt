@@ -16,6 +16,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.ocr.navigation.OcrRoute
 import com.example.ocr.network.ApiRepository
+import com.example.ocr.screen.ocr.constant.CHATGPT_MODEL
+import com.example.ocr.screen.ocr.constant.PROMPT_ANALYZE_SCHEDULE
 import com.example.ocr.screen.ocr.utils.RectI
 import com.example.ocr.screen.ocr.utils.RowType
 import com.example.ocr.screen.ocr.utils.ScheduleParser
@@ -222,17 +224,7 @@ class OcrViewModel @Inject constructor(
 
   fun analyzeSchedule() {
     Log.d("AI Response", "Analyzing schedule...")
-    val prompt = """
-      You are a vision model that reads staff shift tables.
-      Task: Extract pairs of date and duty.
-      Output only JSON that matches the provided schema.
-      Rules:
-      - Match each date with the corresponding duty on the same column/row.
-      - Fixed field names: date, duty.
-      - Preserve original date format (e.g., 09/01).
-      - If unreadable, set form to "不明".
-      - No extra content: no explanations, comments, additional text, key changes, or reordering
-    """.trimIndent()
+    val prompt = PROMPT_ANALYZE_SCHEDULE.trimIndent()
 
     val uri = targetUri
     if (uri == null) {
@@ -244,7 +236,7 @@ class OcrViewModel @Inject constructor(
       error = null
       try {
         output = repo.askWithImage(
-          model = "gpt-4o",
+          model = CHATGPT_MODEL,
           prompt = prompt,
           imageUri = uri,
         )
