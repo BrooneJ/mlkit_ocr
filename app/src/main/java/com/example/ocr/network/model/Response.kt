@@ -19,7 +19,6 @@ data class ResponseInput(
   val content: List<ContentPart>
 )
 
-@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonClassDiscriminator("type")
 sealed interface ContentPart
